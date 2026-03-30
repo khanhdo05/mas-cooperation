@@ -9,7 +9,7 @@ from src.agents.ck_colf import CKCoLFAgent
 def main():
     # Experimental Setup from Source [1, 2]
     env = MASDEnv(N=3, M=3, k=0.66)
-    episodes = 20000
+    episodes = 200000
     trials = 100
     viz = DataVisualizer()
 
