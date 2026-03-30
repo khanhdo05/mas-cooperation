@@ -28,7 +28,7 @@ class DataVisualizer:
         plt.title(title)
         plt.xlabel("Training Episodes (x 1000)")
         plt.ylabel("Average Payoffs")
-        plt.ylim(0.3, 1.0) # Standard range seen in Figure 4 axes [2, 3]
+        plt.ylim(0.3, 1.0)
         plt.legend(loc='lower right')
         plt.grid(True, linestyle='--', alpha=0.7)
         plt.savefig(f"results/plots/{filename}.png")
