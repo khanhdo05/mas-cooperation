@@ -20,7 +20,7 @@ def main():
     for a in alphas:
         exp = Experiment(env, QLearningAgent, episodes, trials, gamma=0.95, base_alpha=a)
         fig4a_data[f"Q-learning, alpha={a}"] = exp.run()
-    viz.plot_results(fig4a_data, "Q-learning: Effect of alpha", "fig_4a")
+    viz.plot_results(fig4a_data, "Q-learning with different learning rates: N=3, M=3", "fig_4a")
 
     # --- FIGURE 4(b): CK with Different Learning Rates ---
     # uncomment the below when implemented 
@@ -29,7 +29,7 @@ def main():
     # for a in alphas:
     #     exp = Experiment(env, CKAgent, episodes, trials, gamma=0.95, base_alpha=a)
     #     fig4b_data[f"CK, alpha={a}"] = exp.run()
-    # viz.plot_results(fig4b_data, "CK: Effect of alpha", "fig_4b")
+    # viz.plot_results(fig4b_data, "CK with different learning rates: N=3, M=3", "fig_4b")
 
     # --- FIGURE 4(c): CoLF vs Q-Learning ---
     # Paper uses alpha_NS=0.1 and alpha_S=0.4 for CoLF [4]
@@ -41,7 +41,7 @@ def main():
     #     "CoLF, alphaNS=0.1, alphaS=0.4": Experiment(env, CoLFAgent, episodes, trials, 
     #                                                 alpha_ns=0.1, alpha_s=0.4).run()
     # }
-    # viz.plot_results(fig4c_data, "CoLF vs Q-Learning", "fig_4c")
+    # viz.plot_results(fig4c_data, "CoLF vs Q-Learning: N=3, M=3", "fig_4c")
 
     # --- FIGURE 4(d): CK-CoLF vs CK ---
     # uncomment the below when implemented
@@ -52,7 +52,7 @@ def main():
     #     "CK-CoLF, alphaNS=0.1, alphaS=0.4": Experiment(env, CKCoLFAgent, episodes, trials, 
     #                                                    alpha_ns=0.1, alpha_s=0.4).run()
     # }
-    # viz.plot_results(fig4d_data, "CK-CoLF vs CK", "fig_4d")
+    # viz.plot_results(fig4d_data, "CK-CoLF vs CK: N=3, M=3", "fig_4d")
 
 if __name__ == "__main__":
     main()
