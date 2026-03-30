@@ -8,6 +8,11 @@ class CKAgent(BaseAgent):
         super().__init__(agent_id, state_size, action_size, gamma)
         self.base_alpha = base_alpha
         self.status = "update"
+        
+        # previous action a_i^(t-1)
+        self.prev_action = None
+        # stored joint action a^upd from the algorithm
+        self.a_upd = None
     
     def get_decayed_alpha(self, state, action):
         """Calculates decayed alpha based on the frequency of action in state"""
@@ -21,7 +26,7 @@ class CKAgent(BaseAgent):
     def choose_action(self):
         pass
 
-    def learn(self):
+    def learn(self, state: int, action: int, reward: float, next_state: int):
         """
         details
         """
