@@ -21,7 +21,7 @@ def main():
 
     # ------------- CoLF Agent -------------
     print("Running CoLFAgent...")
-    exp_colf = Experiment(env, CoLFAgent, episodes=E, trials=T, gamma=0.95, base_alpha=0.1)
+    exp_colf = Experiment(env, CoLFAgent, episodes=E, trials=T, gamma=0.1, base_alpha=0.1)
     colf_results = exp_colf.run()
 
     # ------------- CK Agent -------------
