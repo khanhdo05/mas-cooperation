@@ -1,4 +1,4 @@
-from src.env.masd_env import MASDEnv
+from src.exp_env.masd_env import MASDEnv
 from src.experiment import Experiment
 from src.data_viz import DataVisualizer
 from src.agents.q_learning import QLearningAgent

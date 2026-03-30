@@ -20,7 +20,7 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 ├── main.py                 # ENTRY POINT: Orchestrates Experiment and Visualization
 │
 ├── src/                    
-│   ├── env/                
+│   ├── exp_env/                
 │   │   └── masd_env.py     # MASD payoff logic (N=3, M=3, k=2/3)
 │   │   
 │   ├── agents/             # RL Algorithms
