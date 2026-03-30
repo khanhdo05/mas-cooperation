@@ -14,22 +14,22 @@ def main():
     viz = DataVisualizer()
 
     # --- FIGURE 4(a): Q-Learning with Different Learning Rates ---
-    print("Simulating Figure 4(a)...")
+    #print("Simulating Figure 4(a)...")
     alphas = [0.1, 0.2, 0.4, 0.8]
-    fig4a_data = {}
-    for a in alphas:
-        exp = Experiment(env, QLearningAgent, episodes, trials, gamma=0.95, base_alpha=a)
-        fig4a_data[f"Q-learning, alpha={a}"] = exp.run()
-    viz.plot_results(fig4a_data, "Q-learning with different learning rates: N=3, M=3", "fig_4a")
+    #fig4a_data = {}
+    #for a in alphas:
+    #    exp = Experiment(env, QLearningAgent, episodes, trials, gamma=0.95, base_alpha=a)
+    #    fig4a_data[f"Q-learning, alpha={a}"] = exp.run()
+    #viz.plot_results(fig4a_data, "Q-learning with different learning rates: N=3, M=3", "fig_4a")
 
     # --- FIGURE 4(b): CK with Different Learning Rates ---
     # uncomment the below when implemented 
-    # print("Simulating Figure 4(b)...")
-    # fig4b_data = {}
-    # for a in alphas:
-    #     exp = Experiment(env, CKAgent, episodes, trials, gamma=0.95, base_alpha=a)
-    #     fig4b_data[f"CK, alpha={a}"] = exp.run()
-    # viz.plot_results(fig4b_data, "CK with different learning rates: N=3, M=3", "fig_4b")
+    print("Simulating Figure 4(b)...")
+    fig4b_data = {}
+    for a in alphas:
+        exp = Experiment(env, CKAgent, episodes, trials, gamma=0.95, base_alpha=a)
+        fig4b_data[f"CK, alpha={a}"] = exp.run()
+    viz.plot_results(fig4b_data, "CK with different learning rates: N=3, M=3", "fig_4b")
 
     # --- FIGURE 4(c): CoLF vs Q-Learning ---
     # Paper uses alpha_NS=0.1 and alpha_S=0.4 for CoLF [4]
