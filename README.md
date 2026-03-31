@@ -24,7 +24,7 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 │   │   └── masd_env.py     # MASD payoff logic (N=3, M=3, k=2/3)
 │   │   
 │   ├── agents/             # RL Algorithms
-|   │   ├── base_agent.py   # Abstract class for shared logic (Q-values, exploration)
+│   │   ├── base_agent.py   # Abstract class for shared logic (Q-values, exploration)
 │   │   ├── q_learning.py   # Algorithm 1: Standard Q-learning
 │   │   ├── colf.py         # Algorithm 2: Change or Learn Fast
 │   │   ├── ck.py           # Algorithm 3: Change and Keep
