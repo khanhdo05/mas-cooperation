@@ -42,15 +42,16 @@ class CoLFAgent(BaseAgent):
         #                  else alpha <- alpha_S
         alpha = self.alpha_ns if delta_r > self.S[state, action] else self.alpha_s
 
+        # apply decayed alpha
+        alpha = self.get_decayed_alpha(state, action, alpha)
+
         # Q(a^{t-1}, a_i^t) <- (1-alpha)Q + alpha(r_i^t + gamma max Q(a^t, a_i))
         self.q_table[state, action] = (1 - alpha) * self.q_table[state, action] + alpha * (
             reward + self.gamma * np.max(self.q_table[next_state])
         )
 
-        lam = self.colf_lambda
-
         # S(a^{t-1}, a_i^t) <- (1-lambda)S + lambda * delta_r_i^t
-        self.S[state, action] = (1 - lam) * self.S[state, action] + lam * delta_r
+        self.S[state, action] = (1 - self.colf_lambda) * self.S[state, action] + self.colf_lambda * delta_r
 
         # P(a^{t-1}, a_i^t) <- (1-lambda)P + lambda * r_i^t
-        self.P[state, action] = (1 - lam) * self.P[state, action] + lam * reward
+        self.P[state, action] = (1 - self.colf_lambda) * self.P[state, action] + self.colf_lambda * reward

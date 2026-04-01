@@ -31,6 +31,7 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 │   │   └── ck_colf.py      # Algorithm 4: Hybrid Logic
 │   │
 │   ├── experiment.py       # CLASS: Manages 100-trial batches & data logging 
+│   ├── helper_functions.py # Helper functions like writing csv, reading csv, etc. 
 │   └── data_viz.py         # CLASS: Generates plots (Moving Averages) like Fig 4
 │
 ├── results/                

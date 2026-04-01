@@ -35,3 +35,12 @@ class BaseAgent:
             return np.random.randint(self.action_size)  # Explore: random action
         else:
             return np.argmax(self.q_table[state])  # Exploit: best action
+
+    def get_decayed_alpha(self, state, action, base_alpha=0.1):
+        """Calculates decayed alpha based on the frequency of action in state"""
+        # Increment the count for this state-action pair
+        self.n_table[state, action] += 1
+
+        # Decay alpha based on the count of how many times this state-action pair has been taken. 
+        # The more it has been taken, the smaller the learning rate, allowing for more stable learning over time.
+        return base_alpha / (1 + 0.0001 * self.n_table[state, action])

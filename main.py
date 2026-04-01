@@ -5,52 +5,89 @@ from src.agents.q_learning import QLearningAgent
 from src.agents.ck import CKAgent
 from src.agents.colf import CoLFAgent
 from src.agents.ck_colf import CKCoLFAgent
+from src.helper_functions import save_experiment_data, load_experiment_data
 
 def main():
-    # Experimental Setup from Source [1, 2]
+    # Experimental Setup
     env = MASDEnv(N=3, M=3, k=0.66)
     episodes = 200000
     trials = 100
     viz = DataVisualizer()
 
     # --- FIGURE 4(a): Q-Learning with Different Learning Rates ---
-    #print("Simulating Figure 4(a)...")
+    print("Simulating Figure 4(a)...")
     alphas = [0.1, 0.2, 0.4, 0.8]
-    #fig4a_data = {}
-    #for a in alphas:
-    #    exp = Experiment(env, QLearningAgent, episodes, trials, gamma=0.95, base_alpha=a)
-    #    fig4a_data[f"Q-learning, alpha={a}"] = exp.run()
-    #viz.plot_results(fig4a_data, "Q-learning with different learning rates: N=3, M=3", "fig_4a")
-
-    # --- FIGURE 4(b): CK with Different Learning Rates ---
-    # uncomment the below when implemented 
-    print("Simulating Figure 4(b)...")
-    fig4b_data = {}
+    fig4a_data = {}
+    
     for a in alphas:
-        exp = Experiment(env, CKAgent, episodes, trials, gamma=0.95, base_alpha=a)
-        fig4b_data[f"CK, alpha={a}"] = exp.run()
-    viz.plot_results(fig4b_data, "CK with different learning rates: N=3, M=3", "fig_4b")
+        filename = f"fig4a_ql_alpha_{a}"
+        data = load_experiment_data(filename)
+        
+        if data is None:
+            # If no saved data, run the 100-trial experiment
+            exp = Experiment(env, QLearningAgent, episodes, trials, gamma=0.95, base_alpha=a)
+            data = exp.run()
+            save_experiment_data(data, filename)
+            
+        fig4a_data[f"Q-learning, alpha={a}"] = data
 
-    # --- FIGURE 4(c): CoLF vs Q-Learning ---
-    # Paper uses alpha_NS=0.1 and alpha_S=0.4 for CoLF [4]
-    # uncomment the below when implemented
+    viz.plot_results(fig4a_data, "Q-learning with different learning rates: N=3, M=3", "fig_4a")
+
+    # # --- FIGURE 4(b): CK with Different Learning Rates ---
+    # # uncomment the below when implemented 
+    # print("Simulating Figure 4(b)...")
+    # fig4b_data = {}
+    # for a in alphas:
+    #     filename = f"fig4b_ck_alpha_{a}"
+    #     data = load_experiment_data(filename)
+
+    #     if data is None:
+    #         # If no saved data, run the 100-trial experiment
+    #         exp = Experiment(env, CKAgent, episodes, trials, gamma=0.95, base_alpha=a)
+    #         data = exp.run()
+    #         save_experiment_data(data, filename)
+            
+    #     fig4b_data[f"CK, alpha={a}"] = data
+
+    # viz.plot_results(fig4b_data, "CK with different learning rates: N=3, M=3", "fig_4b")
+
+    # # --- FIGURE 4(c): CoLF vs Q-Learning ---
+    # # uncomment the below when implemented
     # print("Simulating Figure 4(c)...")
+    # colf_filename = "fig4c_colf_ns01_s04"
+    # colf_data = load_experiment_data(colf_filename)
+    
+    # if colf_data is None:
+    #     # Run CoLF with specific gamma=0.1, alpha_NS=0.1 and alpha_S=0.4
+    #     exp_colf = Experiment(env, CoLFAgent, episodes, trials, gamma=0.1, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1)
+    #     colf_data = exp_colf.run()
+    #     save_experiment_data(colf_data, colf_filename)
+
     # fig4c_data = {
     #     "Q-learning, alpha=0.1": fig4a_data["Q-learning, alpha=0.1"],
     #     "Q-learning, alpha=0.4": fig4a_data["Q-learning, alpha=0.4"],
-    #     "CoLF, alphaNS=0.1, alphaS=0.4": Experiment(env, CoLFAgent, episodes, trials, 
-    #                                                 alpha_ns=0.1, alpha_s=0.4).run()
+    #     "CoLF, alphaNS=0.1, alphaS=0.4": colf_data
     # }
+
     # viz.plot_results(fig4c_data, "CoLF vs Q-Learning: N=3, M=3", "fig_4c")
 
-    # --- FIGURE 4(d): CK-CoLF vs CK ---
-    # uncomment the below when implemented
+    # # --- FIGURE 4(d): CK-CoLF vs CK ---
+    # # uncomment the below when implemented
     # print("Simulating Figure 4(d)...")
+
+    # ck_colf_filename = "fig4d_ck_colf_ns01_s04"
+    # ck_colf_data = load_experiment_data(ck_colf_filename)
+    
+    # if ck_colf_data is None:
+    #     # Run CK-CoLF with specific alpha_NS=0.1 and alpha_S=0.4
+    #     exp_ck_colf = Experiment(env, CKCoLFAgent, episodes, trials, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1)
+    #     ck_colf_data = exp_ck_colf.run()
+    #     save_experiment_data(ck_colf_data, ck_colf_filename)
+
     # fig4d_data = {
     #     "CK, alpha=0.1": fig4b_data["CK, alpha=0.1"],
     #     "CK, alpha=0.4": fig4b_data["CK, alpha=0.4"],
-    #     "CK-CoLF, alphaNS=0.1, alphaS=0.4": Experiment(env, CKCoLFAgent, episodes, trials, 
-    #                                                    alpha_ns=0.1, alpha_s=0.4).run()
+    #     "CK-CoLF, alphaNS=0.1, alphaS=0.4": ck_colf_data
     # }
     # viz.plot_results(fig4d_data, "CK-CoLF vs CK: N=3, M=3", "fig_4d")
 

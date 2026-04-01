@@ -14,15 +14,6 @@ class CKAgent(BaseAgent):
         self.prev_action = None
         # stored joint action (state)
         self.a_upd = None
-    
-    def get_decayed_alpha(self, state, action):
-        """Calculates decayed alpha based on the frequency of action in state"""
-        # Increment the count for this state-action pair
-        self.n_table[state, action] += 1
-
-        # Decay alpha based on the count of how many times this state-action pair has been taken. 
-        # The more it has been taken, the smaller the learning rate, allowing for more stable learning over time.
-        return self.base_alpha / (1 + 0.0001 * self.n_table[state, action])
 
     def choose_action(self, state, t):
         """
@@ -46,7 +37,7 @@ class CKAgent(BaseAgent):
                 self.a_upd = state
             else:
                 # standard Q update
-                alpha = self.get_decayed_alpha(state, action)
+                alpha = self.get_decayed_alpha(state, action, self.base_alpha)
                 self.q_table[state, action] = (
                     (1 - alpha) * self.q_table[state, action]
                     + alpha * (reward + self.gamma * np.max(self.q_table[next_state]))
@@ -54,7 +45,7 @@ class CKAgent(BaseAgent):
         else:
             # KEEP mode -> update using stored a_upd
             upd_state = self.a_upd if self.a_upd is not None else state
-            alpha = self.get_decayed_alpha(upd_state, action)
+            alpha = self.get_decayed_alpha(upd_state, action, self.base_alpha)
             self.q_table[upd_state, action] = (
                 (1 - alpha) * self.q_table[upd_state, action]
                 + alpha * (reward + self.gamma * np.max(self.q_table[next_state]))
