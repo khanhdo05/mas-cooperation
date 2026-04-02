@@ -9,7 +9,7 @@ from src.helper_functions import save_experiment_data, load_experiment_data
 
 def main():
     # Experimental Setup
-    env = MASDEnv(N=3, M=3, k=0.66)
+    env = MASDEnv(N=3, M=3, k=float(2/3))
     episodes = 200000
     trials = 100
     viz = DataVisualizer()

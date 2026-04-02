@@ -17,10 +17,9 @@ class CKCoLFAgent(BaseAgent):
         
         # CK mechanism
         self.status = "update"
-        # previous action a_i^(t-1)
-        self.prev_action = None
-        # stored joint action (state)
-        self.a_upd = None
+        self.prev_action = None # Previous action a_i^(t-1)
+        self.s_upd = None # Suspended state index (at-1)
+        self.a_upd = None # Suspended action index (ait)
 
         # CoLF mechanism
         self.colf_lambda = colf_lambda
@@ -47,47 +46,34 @@ class CKCoLFAgent(BaseAgent):
             - KEEP mode -> update using stored a_upd with CoLF adaptive alpha   
         """
         if self.status == "update":
-            if self.prev_action is not None:
+            if self.prev_action is not None and action != self.prev_action:
                 self.status = "keep"
-                self.a_upd = self.prev_action
+                # Suspend the update: store the state-action pair to be updated later
+                self.s_upd = state
+                self.a_upd = action
             else:
-                # get CoLF adaptive alpha:
-                delta_r = abs(reward - self.P[state, action])
-                alpha = self.alpha_ns if delta_r > self.S[state, action] else self.alpha_s
-                alpha = self.get_decayed_alpha(state, action, alpha)
-
-                # Standard Q update with CoLF adaptive alpha
-                self.q_table[state, action] = (
-                    (1 - alpha) * self.q_table[state, action]
-                    + alpha * (reward + self.gamma * np.max(self.q_table[next_state]))
-                )
-                
-                # S(a^{t-1}, a_i^t) <- (1-lambda)S + lambda * delta_r_i^t
-                self.S[state, action] = (1 - self.colf_lambda) * self.S[state, action] + self.colf_lambda * delta_r
-
-                # P(a^{t-1}, a_i^t) <- (1-lambda)P + lambda * r_i^t
-                self.P[state, action] = (1 - self.colf_lambda) * self.P[state, action] + self.colf_lambda * reward
-
+                self._apply_colf_update(state, action, reward, next_state)
         else:
-            # KEEP mode -> update using stored a_upd with CoLF adaptive alpha
-            if self.a_upd is not None:
-                # use stored a_upd for updates instead of current state
-                upd_state = self.a_upd if self.a_upd is not None else state
-
-                # get CoLF adaptive alpha:
-                delta_r = abs(reward - self.P[upd_state, action])
-                alpha = self.alpha_ns if delta_r > self.S[upd_state, action] else self.alpha_s
-                alpha = self.get_decayed_alpha(upd_state, action, alpha)
-
-                self.q_table[upd_state, action] = (
-                    (1 - alpha) * self.q_table[upd_state, action]
-                    + alpha * (reward + self.gamma * np.max(self.q_table[next_state]))
-                )
-
-                # S(a^{t-1}, a_i^t) <- (1-lambda)S + lambda * delta_r_i^t
-                self.S[upd_state, action] = (1 - self.colf_lambda) * self.S[upd_state, action] + self.colf_lambda * delta_r
-
-                # P(a^{t-1}, a_i^t) <- (1-lambda)P + lambda * r_i^t
-                self.P[upd_state, action] = (1 - self.colf_lambda) * self.P[upd_state, action] + self.colf_lambda * reward
+            # KEEP mode: repeat has finished, now update the stored pair
+            # Use current reward from the repeated action for the update
+            # use stored a_upd for updates instead of current state
+            self._apply_colf_update(self.s_upd, self.a_upd, reward, next_state)
             self.status = "update"
         self.prev_action = action   
+
+    def _apply_colf_update(self, s, a, r, s_next):
+        """
+        Private helper applying the CoLF variable learning rate and 
+        the universal alpha decay formula.
+        """
+        delta_r = abs(r - self.P[s, a])
+        alpha_i = self.alpha_ns if delta_r > self.S[s, a] else self.alpha_s
+        alpha_t = self.get_decayed_alpha(s, a, alpha_i)
+        
+        # Standard Q-update
+        best_future_q = np.max(self.q_table[s_next])
+        self.q_table[s, a] = (1 - alpha_t) * self.q_table[s, a] + alpha_t * (r + self.gamma * best_future_q)
+        
+        # Update exponential averages for P and S
+        self.S[s, a] = (1 - self.colf_lambda) * self.S[s, a] + self.colf_lambda * delta_r
+        self.P[s, a] = (1 - self.colf_lambda) * self.P[s, a] + self.colf_lambda * r
