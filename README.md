@@ -86,7 +86,7 @@ We focus on reproducing **Figure 4**, which compares the performance and learnin
 - **Agents (N)** (defined in `main.py`): 3
 - **Actions (M)** (defined in `main.py`): 4 (Resource units {0,1,2,3})
 - **Selfishness Factor (k)** (defined in `main.py`): 2/3
-- **Discount Factor (γ)**: 0.95 (Except for CoLF should use 0.1)
+- **Discount Factor (γ)**: 0.95
 - **Initial Q-values** (defined in `src/agents/base_agent.py`): Vmax = (r max)/(1-γ)
 - **Exploration** (defined in `src/agents/base_agent.py`): epsilon-greedy, decaying from 0.2 to 0: max(0.2 - 0.00006t, 0)
 - **Trials** (defined in `main.py`): Results are averaged over **100 independent trials**
