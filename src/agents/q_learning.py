@@ -5,8 +5,8 @@ class QLearningAgent(BaseAgent):
     """
     Q-Learning Baseline Algorithm
     """
-    def __init__(self, agent_id, state_size, action_size, gamma=0.95, base_alpha=0.1):
-        super().__init__(agent_id, state_size, action_size, gamma)
+    def __init__(self, agent_id, state_size, action_size, seed, gamma=0.95, base_alpha=0.1):
+        super().__init__(agent_id, state_size, action_size, seed, gamma)
         self.base_alpha = base_alpha
 
     def learn(self, state: int, action: int, reward: float, next_state: int):

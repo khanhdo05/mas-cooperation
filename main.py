@@ -14,7 +14,7 @@ def main():
     episodes = 200000
     trials = 100
     viz = DataVisualizer()
-    seed = 23  # Set a fixed seed for reproducibility
+    seed = 23  
 
     # --- FIGURE 4(a): Q-Learning with Different Learning Rates ---
     print("Simulating Figure 4(a)...")

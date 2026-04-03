@@ -9,8 +9,8 @@ class BaseAgent:
         self.agent_id = agent_id
         self.state_size = state_size
         self.action_size = action_size
-        self.gamma = gamma
         self.seed = seed
+        self.gamma = gamma
         
         # Initialize Q-values for all states and actions to Vmax (optimistic initialization)
         self.v_max = 1.0 / (1.0 - self.gamma) 

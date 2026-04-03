@@ -12,11 +12,12 @@ class CoLFAgent(BaseAgent):
         state_size,
         action_size,
         gamma,
+        seed,
         alpha_ns=0.1,
         alpha_s=0.4,
         colf_lambda=0.1,
     ):
-        super().__init__(agent_id, state_size, action_size, gamma)
+        super().__init__(agent_id, state_size, action_size, seed, gamma)
         # Let alpha_S > alpha_NS
         self.alpha_ns = alpha_ns
         # arbitrarily picked 4.0

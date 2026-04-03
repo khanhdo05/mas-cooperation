@@ -10,8 +10,8 @@ class CKCoLFAgent(BaseAgent):
      - When in "keep" mode, it uses the CoLF logic to adapt its learning rate based on the observed reward changes, 
         allowing it to learn quickly when the environment is changing and more slowly when it is stable.
     """
-    def __init__(self, agent_id, state_size, action_size, gamma, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1):
-        super().__init__(agent_id, state_size, action_size, gamma)
+    def __init__(self, agent_id, state_size, action_size, gamma, seed, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1):
+        super().__init__(agent_id, state_size, action_size, seed, gamma)
         self.alpha_ns = alpha_ns # Learning rate for non-stationarity (how quickly to adapt to changes in the environment)
         self.alpha_s = alpha_s # Learning rate for stationarity (how quickly to learn from stable environments)
         
