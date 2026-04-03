@@ -6,8 +6,12 @@ from src.agents.ck import CKAgent
 from src.agents.colf import CoLFAgent
 from src.agents.ck_colf import CKCoLFAgent
 from src.helper_functions import save_experiment_data, load_experiment_data
+import numpy as np
 
 def main():
+    # set seed for reproducibility
+    np.random.seed(42)
+    
     # Experimental Setup
     env = MASDEnv(N=3, M=3, k=float(2/3))
     episodes = 200000
