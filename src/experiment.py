@@ -5,19 +5,20 @@ class Experiment:
     """
     Experiment class to run multiple trials of a multi-agent learning scenario.
     """
-    def __init__(self, env, agent_class: type[BaseAgent], episodes: int, trials: int, **agent_params):
+    def __init__(self, env, agent_class: type[BaseAgent], episodes: int, trials: int, seed: int, **agent_params):
         self.env = env
         self.agent_class = agent_class
         self.episodes = episodes
         self.trials = trials
         self.agent_params = agent_params
+        self.seed = seed
 
-    def _run_single_trial(self):
+    def _run_single_trial(self, seed):
         """
         Run a single trial of the experiment.
         """
         # Initialize agents and environment for one trial
-        agents = [self.agent_class(i, self.env.state_size, self.env.action_space_size, **self.agent_params) 
+        agents = [self.agent_class(i, self.env.state_size, self.env.action_space_size, seed=seed, **self.agent_params) 
                   for i in range(self.env.N)]
         state = self.env.reset()
         rewards_history = []
@@ -45,7 +46,8 @@ class Experiment:
 
         # Run multiple trials and average the rewards
         for trial in range(self.trials):
-            trial_rewards.append(self._run_single_trial())
+            seed = np.random.default_rng(trial + self.seed) 
+            trial_rewards.append(self._run_single_trial(seed))
             print(f"Trial {trial+1}/{self.trials} complete.")
 
         return np.mean(trial_rewards, axis=0) # Average over all trials

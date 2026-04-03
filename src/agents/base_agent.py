@@ -5,11 +5,12 @@ class BaseAgent:
     The base class for all agents, already defined `choose_action` for use.
     When adopt, need to implement `learn` and may need to reimplement `choose_action`.
     """
-    def __init__(self, agent_id, state_size, action_size, gamma=0.95):
+    def __init__(self, agent_id, state_size, action_size, seed: np.random.Generator, gamma=0.95):
         self.agent_id = agent_id
         self.state_size = state_size
         self.action_size = action_size
         self.gamma = gamma
+        self.seed = seed
         
         # Initialize Q-values for all states and actions to Vmax (optimistic initialization)
         self.v_max = 1.0 / (1.0 - self.gamma) 
@@ -31,7 +32,7 @@ class BaseAgent:
             - With probability 1 - epsilon, it chooses the action with the highest Q-value.
         """
         epsilon = self.get_epsilon(t)
-        if np.random.rand() < epsilon:
+        if self.seed.random() < epsilon:
             return np.random.randint(self.action_size)  # Explore: random action
         else:
             return np.argmax(self.q_table[state])  # Exploit: best action
