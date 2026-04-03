@@ -9,7 +9,7 @@ class MASDEnv:
     The state is represented as the previous joint action of all agents, and the action space includes M possible actions for each agent.
 
     - N: Number of agents
-    - M: Number of actions (e.g., 3 for Rock-Paper-Scissors)
+    - M: Number of resource units each agent can hold
     - k: Selfishness factor (e.g., 2/3 means at least 2 out of 3 agents must choose the same action to get a reward)
     """
     def __init__(self, N: int, M: int, k: float):
