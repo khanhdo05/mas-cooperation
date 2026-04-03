@@ -14,6 +14,7 @@ def main():
     episodes = 200000
     trials = 100
     viz = DataVisualizer()
+    seed = 23  # Set a fixed seed for reproducibility
 
     # --- FIGURE 4(a): Q-Learning with Different Learning Rates ---
     print("Simulating Figure 4(a)...")
@@ -26,7 +27,7 @@ def main():
         
         if data is None:
             # If no saved data, run the 100-trial experiment
-            exp = Experiment(env, QLearningAgent, episodes, trials, gamma=0.95, base_alpha=a)
+            exp = Experiment(env, QLearningAgent, episodes, trials, seed, gamma=0.95, base_alpha=a)
             data = exp.run()
             save_experiment_data(data, filename)
             
@@ -44,7 +45,7 @@ def main():
 
         if data is None:
             # If no saved data, run the 100-trial experiment
-            exp = Experiment(env, CKAgent, episodes, trials, gamma=0.95, base_alpha=a)
+            exp = Experiment(env, CKAgent, episodes, trials, seed, gamma=0.95, base_alpha=a)
             data = exp.run()
             save_experiment_data(data, filename)
             
@@ -60,7 +61,7 @@ def main():
     
     if colf_data is None:
         # Run CoLF with specific alpha_NS=0.1 and alpha_S=0.4
-        exp_colf = Experiment(env, CoLFAgent, episodes, trials, gamma=0.95, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1)
+        exp_colf = Experiment(env, CoLFAgent, episodes, trials, seed, gamma=0.95, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1)
         colf_data = exp_colf.run()
         save_experiment_data(colf_data, colf_filename)
 
@@ -81,7 +82,7 @@ def main():
     
     if ck_colf_data is None:
         # Run CK-CoLF with specific alpha_NS=0.1 and alpha_S=0.4
-        exp_ck_colf = Experiment(env, CKCoLFAgent, episodes, trials, gamma=0.95, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1)
+        exp_ck_colf = Experiment(env, CKCoLFAgent, episodes, trials, seed, gamma=0.95, alpha_ns=0.1, alpha_s=0.4, colf_lambda=0.1)
         ck_colf_data = exp_ck_colf.run()
         save_experiment_data(ck_colf_data, ck_colf_filename)
 
