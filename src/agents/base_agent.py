@@ -34,8 +34,7 @@ class BaseAgent:
         epsilon = self.get_epsilon(t)
         if self.seed.random() < epsilon:
             return self.seed.integers(self.action_size)  # Explore: random action
-        else:
-            return np.argmax(self.q_table[state])  # Exploit: best action
+        return np.argmax(self.q_table[state])  # Exploit: best action
 
     def get_decayed_alpha(self, state, action, base_alpha=0.1):
         """Calculates decayed alpha based on the frequency of action in state"""
