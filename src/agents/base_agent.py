@@ -33,7 +33,7 @@ class BaseAgent:
         """
         epsilon = self.get_epsilon(t)
         if self.seed.random() < epsilon:
-            return np.random.randint(self.action_size)  # Explore: random action
+            return self.seed.integers(self.action_size)  # Explore: random action
         else:
             return np.argmax(self.q_table[state])  # Exploit: best action
 
