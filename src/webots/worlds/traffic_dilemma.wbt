@@ -1,40 +1,35 @@
 #VRML_SIM R2025a utf8
 
-EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/abstract/Car.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
 EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3.proto"
 
 WorldInfo {
-  basicTimeStep 32
 }
 Viewpoint {
-  orientation -0.02 0.12 0.99 1.57
+  orientation -0.020051195907785528 0.12030717544671317 0.9925341974353836 1.57
   position 15 0 30
 }
-TexturedBackground {}
-TexturedBackgroundLight {}
-
-# Simple Arena or Road Network
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
 RectangleArena {
   floorSize 30 30
 }
-
-# Define the Three Social Dilemma Agents
-Car {
-  name "Agent_0"
+TeslaModel3 {
   translation 0 0 0
+  name "Agent_0"
   controller "car_controller"
 }
-
-Car {
-  name "Agent_1"
+TeslaModel3 {
   translation 8 0 2
+  name "Agent_1"
   controller "car_controller"
 }
-
-Car {
-  name "Agent_2"
+TeslaModel3 {
   translation -8 0 -2
+  name "Agent_2"
   controller "car_controller"
 }
