@@ -56,12 +56,12 @@ class WebotsEnv:
         self._last_actions: Dict[int, int] = {}
 
     # ── observation ──────────────────────────────────────────────────────────
-    def get_state(self, agent_id: int, gap_to_leader_m: float) -> int:
+    def get_state(self, agent_id: int, obs) -> int:
         """
         Returns a single integer state for the given agent.
-        Currently: discretised gap to the car directly ahead.
         """
-        return _discretise_gap(gap_to_leader_m)
+        front = min(obs[0], obs[1])
+        return _discretise_gap(front)
 
     # ── transition & reward ──────────────────────────────────────────────────
     def step(self, actions: Dict[int, int]) -> Dict[int, float]:
