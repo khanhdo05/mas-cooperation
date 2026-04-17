@@ -18,7 +18,6 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 ├── README.md               # You are here
 ├── requirements.txt        # numpy, matplotlib, etc.
 ├── main.py                 # ENTRY POINT: Orchestrates Experiment and Visualization
-├── main_webots.py          # WEBOT ENTRY POINT: Orchestrates the Webots simulation
 │
 ├── src/                    
 │   ├── exp_env/                
@@ -52,6 +51,10 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 
 ## Getting Started
 
+### Requirements
+
+You need to have Python, an IDE of your choice, and [Webots](https://cyberbotics.com/) installed.
+
 ### Clone and get into the repo
 
 ```sh
@@ -78,7 +81,7 @@ If you add any new dependencies, add them to the `requirements.txt` by this comm
 pip freeze > requirements.txt
 ```
 
-### Run main.py
+### Run main.py to run experiment for Figure 4
 
 ```sh
 python main.py
@@ -103,4 +106,10 @@ We focus on reproducing **Figure 4**, which compares the performance and learnin
 
 ## Extension
 
----future work---
+Our extension work focuses on modeling these algorithms through traffic dilemma with autonomous driving in Webots simulation. 
+
+To open the Webots simulation, run:
+
+```sh
+webots ./src/webots/worlds/traffic_dilemma.wbt
+```
