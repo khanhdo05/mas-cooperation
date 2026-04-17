@@ -8,28 +8,88 @@ EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/project
 WorldInfo {
 }
 Viewpoint {
-  orientation -0.020051195907785528 0.12030717544671317 0.9925341974353836 1.57
-  position 15 0 30
+  orientation -0.12539377114264444 0.06867119959284972 0.989727572873013 2.1482252906694703
+  position 13.713503468694608 -23.82016170865053 7.190340820425616
 }
 TexturedBackground {
 }
 TexturedBackgroundLight {
 }
 RectangleArena {
-  floorSize 30 30
+  floorSize 40 40
 }
 TeslaModel3 {
-  translation 0 0 0
+  translation 1.48 -9.63 0.48
+  rotation 0 0 1 1.5708
+  color 0.878431 0.105882 0.141176
   name "Agent_0"
   controller "car_controller"
 }
 TeslaModel3 {
-  translation 8 0 2
+  translation -9.64 -1.39 0.48
+  rotation 0 1 0 0
+  color 0.964706 0.827451 0.176471
   name "Agent_1"
   controller "car_controller"
 }
 TeslaModel3 {
-  translation -8 0 -2
+  translation 5.9 0.9 0.48
+  rotation 0 0 1 3.14159
   name "Agent_2"
   controller "car_controller"
+}
+Solid {
+  translation 0 0 0.001
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.1 0.1 0.1
+      }
+      geometry Box {
+        size 40 6 0.01
+      }
+    }
+  ]
+  name "road1"
+}
+Solid {
+  translation 0 0 0.002
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.1 0.1 0.1
+      }
+      geometry Box {
+        size 6 40 0.01
+      }
+    }
+  ]
+  name "road2"
+}
+Solid {
+  translation 0 0 0.003
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.2 40 0.01
+      }
+    }
+  ]
+  name "line1"
+}
+Solid {
+  translation 0 0 0.003
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.2 40 0.01
+      }
+    }
+  ]
+  name "line2"
 }
