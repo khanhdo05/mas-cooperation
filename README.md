@@ -18,17 +18,26 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 ├── README.md               # You are here
 ├── requirements.txt        # numpy, matplotlib, etc.
 ├── main.py                 # ENTRY POINT: Orchestrates Experiment and Visualization
+├── main_webots.py          # WEBOT ENTRY POINT: Orchestrates the Webots simulation
 │
 ├── src/                    
 │   ├── exp_env/                
 │   │   └── masd_env.py     # MASD payoff logic (N=3, M=3, k=2/3)
-│   │   
+│   │   └── webots_env.py   # Interface between Webots and RL agents
+│   │  
 │   ├── agents/             # RL Algorithms
 │   │   ├── base_agent.py   # Abstract class for shared logic (Q-values, exploration)
 │   │   ├── q_learning.py   # Algorithm 1: Standard Q-learning
 │   │   ├── colf.py         # Algorithm 2: Change or Learn Fast
 │   │   ├── ck.py           # Algorithm 3: Change and Keep
 │   │   └── ck_colf.py      # Algorithm 4: Hybrid Logic
+│   │
+│   ├── webots/             # Webots-specific simulation files
+│   │   ├── worlds/
+│   │   │   └── traffic_dilemma.wbt  # 3D world (highway merge/intersection)
+│   │   └── controllers/
+│   │       └── car_controller/
+│   │           └── car_controller.py # Controller linking cars to agents
 │   │
 │   ├── experiment.py       # CLASS: Manages 100-trial batches & data logging 
 │   ├── helper_functions.py # Helper functions like writing csv, reading csv, etc. 
