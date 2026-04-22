@@ -1,0 +1,130 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.19401451239007622 0.0880483149252639 0.9770393355545429 2.306898127333645
+  position 33.77427536574656 -41.962273422948435 21.91561614699734
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 40 40
+}
+DEF car_0 TeslaModel3 {
+  hidden position_0_0 -0.00016272476482718213
+  hidden position2_0_0 12.022112120522408
+  hidden position_0_1 0.00016319867888292942
+  hidden position2_0_1 12.022109970497697
+  hidden position_0_2 17.28359945273268
+  hidden position_0_3 17.283598946301545
+  hidden rotation_1 0.9301834669127539 0.2596510585187393 -0.25949960634318525 1.6430610484739638
+  hidden rotation_2 0.9301829380806136 -0.25965222636309676 0.259500333426384 1.6430614834248098
+  hidden rotation_3 -0.5792130660752864 -0.5764167074464748 0.5764165190764667 4.191582429746548
+  hidden rotation_4 -0.5792128711506157 0.5764168053816345 -0.5764166170115943 4.191582137831155
+  translation 1.48 -18.1786 -0.229278
+  rotation 0.007897859205161614 -0.007888586734099264 0.9999376950687048 1.5708617782027858
+  color 0.878431 0.105882 0.141176
+  name "Agent_0"
+  controller "car_controller"
+}
+DEF car_1 TeslaModel3 {
+  hidden position_0_0 -0.0001630937046174979
+  hidden position2_0_0 12.02215672460167
+  hidden position_0_1 0.00016283330704132908
+  hidden position2_0_1 12.022158038403967
+  hidden position_0_2 17.418198777573203
+  hidden position_0_3 17.418199059972046
+  hidden rotation_1 0.9301942585417697 0.2596318943085611 -0.25948009718218334 1.6430493784281301
+  hidden rotation_2 0.9301945811573014 -0.25963119516046734 0.25947964021313885 1.6430491050906977
+  hidden rotation_3 -0.6309568048679018 -0.5485862316384802 0.5485860523633281 4.2673357426982745
+  hidden rotation_4 -0.6309569131652961 0.5485861693592918 -0.5485859900841612 4.267335897618382
+  translation -17.2389 -1.39 -0.214255
+  rotation -0.0003129848178504851 -0.999999950815642 2.0229121786718584e-05 0.015784490900466082
+  color 0.964706 0.827451 0.176471
+  name "Agent_1"
+  controller "car_controller"
+}
+DEF car_2 TeslaModel3 {
+  hidden position_0_0 -0.00016321269940955673
+  hidden position2_0_0 12.042869437213676
+  hidden position_0_1 0.00016241324286091498
+  hidden position2_0_1 12.042873205020442
+  hidden position_0_2 17.341300533377588
+  hidden position_0_3 17.341301407174818
+  hidden rotation_1 0.9351334532344574 0.2506012174649707 -0.2504485065774464 1.637768184732999
+  hidden rotation_2 0.9351343505771789 -0.2505991690748018 0.2504472056734053 1.6377674413157424
+  hidden rotation_3 -0.6014167723179142 -0.5649327723575557 0.5649325877404385 4.224514129285469
+  hidden rotation_4 -0.6014171084109278 0.564932593458278 -0.5649324088412192 4.224514622922082
+  translation 18.9303 1.28001 -0.302135
+  rotation 0.007945832272335904 -7.637333366703515e-06 0.9999684313472957 3.1415909220569853
+  name "Agent_2"
+  controller "car_controller"
+}
+Solid {
+  translation 0 0 0.001
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.1 0.1 0.1
+      }
+      geometry Box {
+        size 40 6 0.01
+      }
+    }
+  ]
+  name "road1"
+}
+Solid {
+  translation 0 0 0.002
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.1 0.1 0.1
+      }
+      geometry Box {
+        size 6 40 0.01
+      }
+    }
+  ]
+  name "road2"
+}
+Solid {
+  translation 0 0 0.003
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.2 40 0.01
+      }
+    }
+  ]
+  name "line1"
+}
+Solid {
+  translation 0 0 0.003
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.2 40 0.01
+      }
+    }
+  ]
+  name "line2"
+}
+Robot {
+  name "supervisor"
+  controller "supervisor_controller"
+  supervisor TRUE
+}
