@@ -1,10 +1,6 @@
 """
 Interface between a running Webots simulation and the RL agents.
 
-Each agent perceives a discrete state (e.g. gap-to-car-ahead) and
-chooses an action (COOPERATE = yield / DEFECT = push forward).
-Rewards mirror the MASD payoff matrix used in masd_env.py.
-
 This setup follows the design for N=3, M=3 as described for Figure 4 in the paper, but can be easily extended to more agents or different action spaces.
 
 In a M=3 setup, there are 4 distinct actions:
