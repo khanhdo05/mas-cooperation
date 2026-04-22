@@ -22,15 +22,13 @@ def make_agent(world_name: str, agent_id: int, env: WebotsEnv):
     if "q_learning" in world_name:
         return QLearningAgent(agent_id, env.N, env.n_actions,
                               gamma=0.95, base_alpha=0.1, seed=seed)
-
-    elif "ck" in world_name:
-        return CKAgent(agent_id, env.N, env.n_actions,
-                       gamma=0.95, base_alpha=0.1, seed=seed)
-
     elif "ck_colf" in world_name:
         return CKCoLFAgent(agent_id, env.N, env.n_actions,
                            seed=seed, gamma=0.95,
                            alpha_ns=0.1, alpha_s=0.4,
                            colf_lambda=0.1)
+    elif "ck" in world_name:
+        return CKAgent(agent_id, env.N, env.n_actions,
+                       gamma=0.95, base_alpha=0.1, seed=seed)
     else:
         raise ValueError(f"Unknown algorithm for agent {agent_id} in file '{world_name}'")

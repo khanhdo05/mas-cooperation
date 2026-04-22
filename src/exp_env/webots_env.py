@@ -75,7 +75,8 @@ class WebotsEnv:
             cost = (self.k * ai) / (self.M * (1.0 - self.k))
             
             rewards[agent_id] = benefit - cost
-            
+        
+        print(f"Actions: {actions} | Rewards: {rewards}")
         return rewards
 
     @property

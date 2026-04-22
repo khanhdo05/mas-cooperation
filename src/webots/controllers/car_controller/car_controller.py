@@ -141,6 +141,10 @@ def run():
         for m in motors:
             m.setVelocity(speed)
 
+        # print q table every 100 steps
+        if t % 100 == 0:
+            agent.print_q_table()
+
 
 if __name__ == "__main__":
     run()
