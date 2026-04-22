@@ -1,45 +1,40 @@
 """
-webots_env.py
 Interface between a running Webots simulation and the RL agents.
 
 Each agent perceives a discrete state (e.g. gap-to-car-ahead) and
 chooses an action (COOPERATE = yield / DEFECT = push forward).
 Rewards mirror the MASD payoff matrix used in masd_env.py.
+
+This setup follows the design for N=3, M=3 as described for Figure 4 in the paper, but can be easily extended to more agents or different action spaces.
+
+In a M=3 setup, there are 4 distinct actions:
+  - 0: Full Defection (0 units contributed) → Aggressive driving / No yielding
+        The car prioritizes its "self-interested goal," which translates to pushing forward or maintaining maximum speed to maximize its own utility.
+  - 1: Partial Cooperation (1 unit contributed) → Slightly more yielding
+        The car allocates all its resources to the "group goal," which translates to yielding or slowing down significantly to ensure the overall traffic flow remains stable.
+  - 2: Moderate Cooperation (2 units contributed) → More yielding
+        The car allocates some resources to the "group goal," which translates to yielding or slowing down moderately to help maintain traffic flow while still considering its own progress.
+  - 3: Full Cooperation (3 units contributed) → Maximum yielding / Safe driving
+        The car allocates all its resources to the "group goal," which translates to yielding or slowing down significantly to ensure the overall traffic flow remains stable.
 """
 
 from __future__ import annotations
-import math
-from typing import Dict, List, Tuple
+from typing import Dict
 
-
-# ── Payoff constants (keep in sync with masd_env.py) ────────────────────────
-# N=3 agents, cooperation threshold k=2 out of 3
-# If >= k agents cooperate → all cooperators get R, defectors get T
-# else → cooperators get S, defectors get P
-R = 3.0   # Reward  (mutual cooperation)
-P = 1.0   # Punishment (mutual defection)
-T = 5.0   # Temptation (defect while others cooperate)
-S = 0.0   # Sucker  (cooperate while others defect)
-K = 2     # cooperation threshold (out of N=3)
-
-COOPERATE = 0
-DEFECT = 1
-
-
-# ── State discretisation ────────────────────────────────────────────────────
-CLOSE  = 0   # gap < 3 m   → risky to push forward
-MEDIUM = 1   # 3–8 m
+# =========================
+# STATES
+# =========================
+CLOSE  = 0   # gap < 4 m   → risky to push forward
+MEDIUM = 1   # 4–8 m
 FAR    = 2   # > 8 m       → safe to move
 
 def _discretise_gap(gap_m: float) -> int:
-    if gap_m < 3.0:
+    if gap_m < 4.0:
         return CLOSE
     elif gap_m < 8.0:
         return MEDIUM
     return FAR
 
-
-# ── WebotsEnv ────────────────────────────────────────────────────────────────
 class WebotsEnv:
     """
     Thin wrapper that translates Webots sensor readings into
@@ -51,55 +46,52 @@ class WebotsEnv:
         reward = env.step(actions_dict)   # dict {agent_id: action}
     """
 
-    def __init__(self, n_agents: int = 3):
-        self.n_agents = n_agents
+    def __init__(self, N: int = 3, M: int = 3, k: float = 2/3):
+        self.N = N
+        self.M = M        # Actions: 0, 1, ..., M units of cooperation
+        self.k = k        # Selfishness factor
         self._last_actions: Dict[int, int] = {}
 
-    # ── observation ──────────────────────────────────────────────────────────
     def get_state(self, agent_id: int, obs) -> int:
         """
+        Translates sensor data into states. 
         Returns a single integer state for the given agent.
         """
         front = min(obs[0], obs[1])
         return _discretise_gap(front)
 
-    # ── transition & reward ──────────────────────────────────────────────────
     def step(self, actions: Dict[int, int]) -> Dict[int, float]:
         """
         Given a dict of {agent_id: action} for all agents,
         compute and return {agent_id: reward}.
 
-        Payoff logic (MASD, N=3, k=2):
-          cooperators_count >= K  → cooperators get R, defectors get T
-          cooperators_count  < K  → cooperators get S, defectors get P
+        Payoff logic:
+          Pi(a) = [ (1/N) * sum(aj) ] - [ (k * ai) / (M * (1-k)) ]
         """
         self._last_actions = dict(actions)
-        n_cooperate = sum(1 for a in actions.values() if a == COOPERATE)
+        n_cooperate = sum(actions.values())
 
         rewards: Dict[int, float] = {}
-        for agent_id, action in actions.items():
-            if n_cooperate >= K:
-                rewards[agent_id] = R if action == COOPERATE else T
-            else:
-                rewards[agent_id] = S if action == COOPERATE else P
-
+        for agent_id, ai in actions.items():
+            # Pi(a) = [ (1/N) * sum(aj) ] - [ (k * ai) / (M * (1-k)) ]
+            # Note: We divide total_contribution by (N*M) to normalize reward
+            benefit = n_cooperate / (self.N * self.M)
+            cost = (self.k * ai) / (self.M * (1.0 - self.k))
+            
+            rewards[agent_id] = benefit - cost
+            
         return rewards
-
-    # ── helpers ──────────────────────────────────────────────────────────────
-    @property
-    def n_states(self) -> int:
-        return 3   # CLOSE / MEDIUM / FAR
 
     @property
     def n_actions(self) -> int:
-        return 2   # COOPERATE / DEFECT
+        return self.M + 1  # 0, 1, 2, 3 units
 
-    def action_to_speed(self, action: int, base_speed: float = 10.0) -> float:
+    def action_to_speed(self, action: int, max_speed: float = 13.0) -> float:
         """
-        Maps a discrete action to a wheel speed (m/s).
-          COOPERATE → slow down / yield
-          DEFECT    → maintain / accelerate
+        Maps contribution units to target speed.
+        Action 3 (Full Cooperation) -> Slower/Safe speed to foster group flow.
+        Action 0 (Full Defection)   -> Max speed / Aggressive driving.
         """
-        if action == COOPERATE:
-            return base_speed * 0.5     # yield: half speed
-        return base_speed               # defect: full speed
+        # Linear mapping: more units contributed = more 'yielding' (lower speed)
+        speed_reduction = (action / self.M) * 0.5
+        return max_speed * (1.0 - speed_reduction)

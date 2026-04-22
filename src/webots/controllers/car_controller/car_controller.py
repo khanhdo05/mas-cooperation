@@ -14,9 +14,13 @@ from controller import Robot  # type: ignore
 from src.exp_env.webots_env import WebotsEnv
 from src.webots.utils.helper_functions import make_agent
 
-MAX_SPEED = 20.0
-TIMESTEP = 32
-N_AGENTS = 3
+# =========================
+# CONSTANTS
+# =========================
+MAX_SPEED = 13.0
+N = 3
+M = 3
+k = 2/3
 
 # helper function to read gap sensor values and cap them at 50.0 (to avoid outliers)
 def read_gap(sensor):
@@ -63,7 +67,7 @@ def run():
 
     agent_id = int(robot.getName().split("_")[1])
 
-    env = WebotsEnv(n_agents=N_AGENTS)
+    env = WebotsEnv(N, M, k)
     world_name = robot.getWorldPath().split('/')[-1]
     agent = make_agent(world_name, agent_id, env)
 
@@ -112,12 +116,12 @@ def run():
 
         action = agent.choose_action(state, t)
         t += 1
-        speed = env.action_to_speed(action, base_speed=MAX_SPEED)
+        speed = env.action_to_speed(action, max_speed=MAX_SPEED)
 
         received[agent_id] = action
 
         # learning step
-        if len(received) == N_AGENTS:
+        if len(received) == N:
             rewards = env.step(received)
 
             reward = rewards[agent_id]

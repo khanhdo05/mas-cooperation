@@ -20,15 +20,15 @@ def make_agent(world_name: str, agent_id: int, env: WebotsEnv):
     seed = np.random.default_rng(fav_num + agent_id)
 
     if "q_learning" in world_name:
-        return QLearningAgent(agent_id, env.n_states, env.n_actions,
+        return QLearningAgent(agent_id, env.N, env.n_actions,
                               gamma=0.95, base_alpha=0.1, seed=seed)
 
     elif "ck" in world_name:
-        return CKAgent(agent_id, env.n_states, env.n_actions,
+        return CKAgent(agent_id, env.N, env.n_actions,
                        gamma=0.95, base_alpha=0.1, seed=seed)
 
     elif "ck_colf" in world_name:
-        return CKCoLFAgent(agent_id, env.n_states, env.n_actions,
+        return CKCoLFAgent(agent_id, env.N, env.n_actions,
                            seed=seed, gamma=0.95,
                            alpha_ns=0.1, alpha_s=0.4,
                            colf_lambda=0.1)
