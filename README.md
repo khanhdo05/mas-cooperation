@@ -110,8 +110,22 @@ We focus on reproducing **Figure 4**, which compares the performance and learnin
 
 Our extension work focuses on modeling these algorithms through traffic dilemma with autonomous driving in Webots simulation. 
 
-To open the Webots simulation, run:
+To open the Webots simulation for:
+
+Q-Learning, run
 
 ```sh
-webots ./src/webots/worlds/traffic_dilemma.wbt
+webots ./src/webots/worlds/traffic_q_learning.wbt
+```
+
+CK, run
+
+```sh
+webots ./src/webots/worlds/traffic_ck.wbt
+```
+
+CK-CoLF, run
+
+```sh
+webots ./src/webots/worlds/traffic_ck_colf.wbt
 ```

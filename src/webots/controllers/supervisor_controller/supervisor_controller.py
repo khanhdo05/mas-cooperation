@@ -1,20 +1,27 @@
 # =========================
 # SUPERVISOR PURPOSE
 # =========================
-# This Supervisor controller monitors all cars in the simulation and
-# evaluates their performance based on simple movement metrics.
-#
-# Each car is controlled by a different learning algorithm
-# (Q-learning, CK, and CK-CoLF). The Supervisor measures how 
-# effectively each algorithm moves its car through the 
-# environment.
+# This Supervisor controller monitors all cars in a self-play simulation.
+# It identifies the shared algorithm from the world name and evaluates
+# collective performance (distance and speed) across the group.
 #
 # Specifically, it computes:
 # - total distance traveled by each car
 # - average speed over time
 # =========================
 
-from controller import Supervisor
+import sys
+import os
+
+PROJECT_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../../..")
+)
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+    
+from controller import Supervisor  # type: ignore
+from src.webots.utils.helper_functions import get_algo_name
 import math
 
 # =========================
@@ -33,13 +40,11 @@ cars = {
 }
 
 # =========================
-# ALGORITHM LABELS
+# ALGORITHM MATCHING
 # =========================
-algo_names = {
-    0: "Q-learning",
-    1: "CK",
-    2: "CK-CoLF",
-}
+world_path = robot.getWorldPath()
+world_file = os.path.basename(world_path)
+current_algo = get_algo_name(world_file)
 
 # =========================
 # EXPERIMENT SETTINGS
@@ -57,7 +62,7 @@ car_data = {
     for i in cars
 }
 
-print("Supervisor started")
+print(f"Supervisor started for Experiment: {current_algo}")
 
 # =========================
 # MAIN LOOP
@@ -99,7 +104,7 @@ while robot.step(timestep) != -1:
         for i in cars:
             avg_speed = car_data[i]["total_distance"] / step_count
             print(
-                f"{algo_names[i]} (car_{i}) | "
+                f"{current_algo} (car_{i}) | "
                 f"distance: {car_data[i]['total_distance']:.3f} | "
                 f"avg speed: {avg_speed:.3f}"
             )
@@ -114,7 +119,7 @@ while robot.step(timestep) != -1:
             avg_speed = total_distance / step_count
 
             print(
-                f"{algo_names[i]} (car_{i}) | "
+                f"{current_algo} (car_{i}) | "
                 f"total distance: {total_distance:.3f} | "
                 f"average speed: {avg_speed:.3f}"
             )

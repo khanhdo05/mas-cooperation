@@ -10,53 +10,23 @@ if PROJECT_ROOT not in sys.path:
 
 import numpy as np
 from controller import Robot  # type: ignore
-import json
 
 from src.exp_env.webots_env import WebotsEnv
-from src.agents.q_learning import QLearningAgent
-from src.agents.ck import CKAgent
-from src.agents.ck_colf import CKCoLFAgent
+from src.webots.utils.helper_functions import make_agent
 
 MAX_SPEED = 20.0
 TIMESTEP = 32
 N_AGENTS = 3
 
-
+# helper function to read gap sensor values and cap them at 50.0 (to avoid outliers)
 def read_gap(sensor):
     return min(sensor.getValue(), 50.0)
-
 
 def safe_get(robot, name, kind="device"):
     obj = robot.getDevice(name)
     if obj is None:
         raise RuntimeError(f"[ERROR] Missing {kind}: '{name}'")
     return obj
-
-
-def make_agent(agent_id: int, env: WebotsEnv):
-    algo_map = {0: "q", 1: "ck", 2: "ckcolf"}
-    fav_num = 31
-    seed = np.random.default_rng(fav_num + agent_id)
-
-    algo = algo_map[agent_id]
-
-    if algo == "q":
-        return QLearningAgent(agent_id, env.n_states, env.n_actions,
-                              gamma=0.95, base_alpha=0.1, seed=seed)
-
-    elif algo == "ck":
-        return CKAgent(agent_id, env.n_states, env.n_actions,
-                       gamma=0.95, base_alpha=0.1, seed=seed)
-
-    elif algo == "ckcolf":
-        return CKCoLFAgent(agent_id, env.n_states, env.n_actions,
-                           seed=seed, gamma=0.95,
-                           alpha_ns=0.1, alpha_s=0.4,
-                           colf_lambda=0.1)
-
-    else:
-        raise ValueError(f"Unknown algorithm for agent {agent_id}")
-
 
 def run():
     robot = Robot()
@@ -94,7 +64,8 @@ def run():
     agent_id = int(robot.getName().split("_")[1])
 
     env = WebotsEnv(n_agents=N_AGENTS)
-    agent = make_agent(agent_id, env)
+    world_name = robot.getWorldPath().split('/')[-1]
+    agent = make_agent(world_name, agent_id, env)
 
     # =========================
     # TESLA MODEL 3 WHEELS
