@@ -22,36 +22,51 @@ if PROJECT_ROOT not in sys.path:
 
 from controller import Supervisor  # type: ignore
 from src.webots.utils.helper_functions import get_algo_name
+from src.exp_env.masd_env import MASDEnv
 import math
+import numpy as np
 
 # =========================
 # WEBOTS SETUP
 # =========================
 robot = Supervisor()
 timestep = int(robot.getBasicTimeStep())
+N_AGENTS = 3
+
+# =========================
+# WEBOTS ENVIRONMENT SETUP
+# =========================
+env = MASDEnv(
+    N=N_AGENTS,
+    M=3,
+    k=2/3
+)
+
+state = env.reset()
 
 # =========================
 # CAR REFERENCES
 # =========================
 cars = {
-    0: robot.getFromDef("car_0"),
-    1: robot.getFromDef("car_1"),
-    2: robot.getFromDef("car_2"),
+    i: robot.getFromDef(f"car_{i}") for i in range(N_AGENTS)
 }
 
 # =========================
 # STORE INITIAL POSES
 # =========================
-initial_poses = {}
-
-for i, car in cars.items():
-    trans_field = car.getField("translation")
-    rot_field = car.getField("rotation")
-
-    initial_poses[i] = {
-        "translation": trans_field.getSFVec3f(),
-        "rotation": rot_field.getSFRotation(),
+initial_poses = {
+    i: {
+        "translation": cars[i].getField("translation").getSFVec3f(),
+        "rotation": cars[i].getField("rotation").getSFRotation(),
     }
+    for i in cars
+}
+
+# For logging
+car_data = {
+    i: {"total_dist": 0.0, "prev_pos": None}
+    for i in cars
+}
 
 # =========================
 # ALGORITHM MATCHING
@@ -63,29 +78,42 @@ current_algo = get_algo_name(world_file)
 # =========================
 # EXPERIMENT SETTINGS
 # =========================
-MAX_STEPS = 200000
+MAX_EPISODES = 200000
 STEPS_PER_EPISODE = 1000   # Timeout for each attempt
 COLLISION_THRESHOLD = 4.0  # Meters (Detects crash between car bounding boxes). If change this, also update in webots_env.py for consistency.
 RESET_GRACE_STEPS = 10
 grace_counter = 0
 
+
 # =========================
 # MAIN LOOP
 # =========================
-print(f"=== Starting {MAX_STEPS} Episodes for {current_algo} ===")
+print(f"=== Starting {MAX_EPISODES} Episodes for {current_algo} ===")
 
 # Episode loop
-for episode in range(1, MAX_STEPS + 1):
+for episode in range(1, MAX_EPISODES + 1):
     print(f"\n=== Episode {episode} ===")
-    # Reset metrics for the new episode
-    car_data = {i: {"total_dist": 0.0, "prev_pos": None} for i in cars}  # metrics storage
+
+    # reset episode-specific variables
+    state = env.reset()
     episode_step = 0
     collision_occurred = False
 
     # Step through the episode until timeout or collision
     while robot.step(timestep) != -1:
         episode_step += 1
-        
+
+        # ============================
+        # TODO: GENERATE ACTIONS (NEED TO BE REPLACED WITH ACTUAL AGENT ACTIONS)
+        # ============================
+        actions = np.random.randint(0, 3, size=N_AGENTS)
+
+        # =========================
+        # ENVIRONMENT STEP
+        # =========================
+        next_state, rewards, prev_state = env.step(actions)
+        state = next_state
+
         # ============================
         # UPDATE DISTANCE FOR EACH CAR
         # ============================
@@ -114,6 +142,10 @@ for episode in range(1, MAX_STEPS + 1):
         # =========================
         if episode_step % 100 == 0:
             print(f"--- Step {episode_step} ---")
+            print("ACTIONS:", actions)
+            print("STATE:", state)
+            print("NEXT STATE:", next_state)
+            print("REWARDS:", rewards)
             for i in cars:
                 avg_speed = car_data[i]["total_dist"] / episode_step
                 print(
@@ -158,13 +190,14 @@ for episode in range(1, MAX_STEPS + 1):
             
             if episode % 500 == 0: # Status update every 500 episodes
                 status = "CRASH" if collision_occurred else "TIMEOUT"
-                print(f"Epi {episode}/{MAX_STEPS} | {status} | Avg Spd: {avg_speed:.3f}")
+                print(f"Epi {episode}/{MAX_EPISODES} | {status} | Avg Spd: {avg_speed:.3f}")
 
             # =========================
             # FULL RESET
             # =========================
 
             robot.simulationResetPhysics()
+            state = env.reset()
 
             # Reset positions
             for i, car in cars.items():
@@ -185,6 +218,7 @@ for episode in range(1, MAX_STEPS + 1):
             # Reset previous position for distance calculation
             for i in car_data:
                 car_data[i]["prev_pos"] = None  
+                car_data[i]["total_dist"] = 0.0
 
             break  # Move to next episode
 

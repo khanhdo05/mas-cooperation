@@ -11,7 +11,6 @@ if PROJECT_ROOT not in sys.path:
 import numpy as np
 from controller import Robot  # type: ignore
 
-from src.exp_env.webots_env import WebotsEnv
 from src.webots.utils.helper_functions import make_agent, load_q_table, save_q_table
 
 # =========================
@@ -23,48 +22,30 @@ M = 3
 k = 2/3
 
 def safe_get(robot, name, kind="device"):
+    """
+    Safely get a device from the robot. Raises an error if the device is missing.
+    """
     obj = robot.getDevice(name)
     if obj is None:
         raise RuntimeError(f"[ERROR] Missing {kind}: '{name}'")
     return obj
 
+def action_to_speed(action):
+    """
+    Convert action index to speed value.
+    """
+    return MAX_SPEED * (
+            1 - action / M
+        )
+
 def run():
     robot = Robot()
 
-    # print("=== DEVICES ===")
-    # for i in range(robot.getNumberOfDevices()):
-    #     print(robot.getDeviceByIndex(i).getName())
-    """
-    left_steer 
-    left_steer_sensor 
-    left_front_sensor 
-    left_front_brake 
-    right_steer 
-    right_steer_sensor 
-    right_front_sensor 
-    right_front_brake 
-    left_rear_wheel 
-    left_rear_sensor 
-    left_rear_brake 
-    right_rear_wheel 
-    right_rear_sensor 
-    right_rear_brake 
-    engine_speaker 
-    front_lights 
-    right_indicators 
-    left_indicators 
-    antifog_lights 
-    brake_lights 
-    rear_lights 
-    backwards_lights
-    """
     ts = int(robot.getBasicTimeStep())
 
     agent_id = int(robot.getName().split("_")[1])
-
-    env = WebotsEnv(N, M, k, MAX_SPEED)
     world_name = robot.getWorldPath().split('/')[-1]
-    agent = make_agent(world_name, agent_id, env)
+    agent = make_agent(world_name, agent_id, state_size=N**M, action_size=M)
     load_q_table(agent, world_name, agent_id)
 
     # =========================
@@ -80,48 +61,39 @@ def run():
         m.setVelocity(0.0)
 
     # =========================
-    # SENSOR
-    # =========================
-    sensors = {
-        "lf": robot.getDevice("left_front_sensor"),
-        "rf": robot.getDevice("right_front_sensor"),
-        "lr": robot.getDevice("left_rear_sensor"),
-        "rr": robot.getDevice("right_rear_sensor"),
-    }
-
-    for s in sensors.values():
-        s.enable(ts)
-
-    # =========================
     # MAIN LOOP
     # =========================
-    state = env.reset()
-
     t = 0
+    state = 0  # Initial state (can be modified to reflect actual environment state if needed)
 
     while robot.step(ts) != -1:
+        # choose action
         action = agent.choose_action(state, t)
-        t += 1
-        speed = env.action_to_speed(action, max_speed=MAX_SPEED)
 
-        # learning step
-        joint_action = np.zeros(env.N, dtype=int)
-        joint_action[agent_id] = action
-
-        next_state, rewards, prev_state = env.step(joint_action)
-        reward = rewards[agent_id]
-
-        agent.learn(state, action, reward, next_state)
-
+        # TODO: get reward and next_state from environment based on action
+        # this is a placeholder and should be replaced with actual logic to interact with the environment and calculate rewards
+        reward = 0
+        next_state = state
+        agent.learn(
+            state,
+            action,
+            reward,
+            next_state
+        )
         state = next_state
+
+        # get speed from action
+        speed = action_to_speed(action)
 
         # drive all wheels
         for m in motors:
             m.setVelocity(speed)
 
+        # increment time step
+        t += 1
+
         # periodic persistence
         if t % 50 == 0:
-            print(agent.q_table)
             save_q_table(agent, world_name, agent_id)
 
 
