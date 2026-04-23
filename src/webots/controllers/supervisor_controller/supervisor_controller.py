@@ -77,7 +77,6 @@ print(f"=== Starting {MAX_STEPS} Episodes for {current_algo} ===")
 # Episode loop
 for episode in range(1, MAX_STEPS + 1):
     print(f"\n=== Episode {episode} ===")
-    
     # Reset metrics for the new episode
     car_data = {i: {"total_dist": 0.0, "prev_pos": None} for i in cars}  # metrics storage
     episode_step = 0

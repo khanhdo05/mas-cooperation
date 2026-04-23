@@ -13,82 +13,71 @@ In a M=3 setup, there are 4 distinct actions:
   - 3: Full Cooperation (3 units contributed) → Maximum yielding / Safe driving
         The car allocates all its resources to the "group goal," which translates to yielding or slowing down significantly to ensure the overall traffic flow remains stable.
 """
-
 from __future__ import annotations
-from typing import Dict
 
-# =========================
-# STATES
-# =========================
-CLOSE  = 0   # gap < 4 m   → risky to push forward
-MEDIUM = 1   # 4–8 m
-FAR    = 2   # > 8 m       → safe to move
+import numpy as np
 
-def _discretise_gap(gap_m: float) -> int:
-    if gap_m < 4.0:
-        return CLOSE
-    elif gap_m < 8.0:
-        return MEDIUM
-    return FAR
+from src.exp_env.masd_env import MASDEnv
 
-class WebotsEnv:
+
+class WebotsEnv(MASDEnv):
     """
-    Thin wrapper that translates Webots sensor readings into
-    (state, reward) tuples consumable by any BaseAgent subclass.
+    Webots-specific extension of MASDEnv.
 
-    Usage inside car_controller.py:
-        env = WebotsEnv(n_agents=3)
-        state  = env.get_state(agent_id, gap_to_leader)
-        reward = env.step(actions_dict)   # dict {agent_id: action}
+    Inherits:
+        reward logic
+        state transitions
+        joint action logic
+        reset logic
+
+    Adds:
+        action_to_speed()
+        sensor preprocessing
+        Webots utilities
     """
+    def __init__(
+        self,
+        N: int = 3,
+        M: int = 3,
+        k: float = 2/3,
+        max_speed: float = 13.0
+    ):
 
-    def __init__(self, N: int = 3, M: int = 3, k: float = 2/3):
-        self.N = N
-        self.M = M        # Actions: 0, 1, ..., M units of cooperation
-        self.k = k        # Selfishness factor
-        self._last_actions: Dict[int, int] = {}
+        super().__init__(N, M, k)
 
-    def get_state(self, agent_id: int, obs) -> int:
+        self.max_speed = max_speed
+
+    # =========================
+    # WEBOTS ADDITIONS
+    # =========================
+
+    def action_to_speed(
+        self,
+        action: int,
+        max_speed: float | None = None,
+    ) -> float:
         """
-        Translates sensor data into states. 
-        Returns a single integer state for the given agent.
-        """
-        front = min(obs[0], obs[1])
-        return _discretise_gap(front)
+        Convert discrete action → wheel speed.
 
-    def step(self, actions: Dict[int, int]) -> Dict[int, float]:
-        """
-        Given a dict of {agent_id: action} for all agents,
-        compute and return {agent_id: reward}.
+        0 = stop
+        M = max speed
 
-        Payoff logic:
-          Pi(a) = [ (1/N) * sum(aj) ] - [ (k * ai) / (M * (1-k)) ]
+        Maps linearly, so intermediate actions yield intermediate speeds. 
         """
-        self._last_actions = dict(actions)
-        n_cooperate = sum(actions.values())
-
-        rewards: Dict[int, float] = {}
-        for agent_id, ai in actions.items():
-            # Pi(a) = [ (1/N) * sum(aj) ] - [ (k * ai) / (M * (1-k)) ]
-            # Note: We divide total_contribution by (N*M) to normalize reward
-            benefit = n_cooperate / (self.N * self.M)
-            cost = (self.k * ai) / (self.M * (1.0 - self.k))
-            
-            rewards[agent_id] = benefit - cost
-        
-        print(f"Actions: {actions} | Rewards: {rewards}")
-        return rewards
-
-    @property
-    def n_actions(self) -> int:
-        return self.M + 1  # 0, 1, 2, 3 units
-
-    def action_to_speed(self, action: int, max_speed: float = 13.0) -> float:
+        return max_speed * (
+            1 - action / self.M
+        )
+    
+    def read_gap(
+        self,
+        sensor,
+        cap: float = 50.0,
+    ) -> float:
         """
-        Maps contribution units to target speed.
-        Action 3 (Full Cooperation) -> Slower/Safe speed to foster group flow.
-        Action 0 (Full Defection)   -> Max speed / Aggressive driving.
+        Prevent extreme sensor outliers.
         """
-        # Linear mapping: more units contributed = more 'yielding' (lower speed)
-        speed_reduction = (action / self.M) * 0.5
-        return max_speed * (1.0 - speed_reduction)
+        return min(
+            sensor.getValue(),
+            cap,
+        )
+

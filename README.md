@@ -33,7 +33,9 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 │   │
 │   ├── webots/             # Webots-specific simulation files
 │   │   ├── worlds/
-│   │   │   └── traffic_dilemma.wbt  # 3D world (highway merge/intersection)
+│   │   │   └── traffic_q_learning.wbt
+│   │   │   └── traffic_ck.wbt
+│   │   │   └── traffic_ck_colf.wbt
 │   │   └── controllers/
 │   │       └── car_controller/
 │   │           └── car_controller.py # Controller linking cars to agents
@@ -46,6 +48,7 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 │
 ├── results/                
 │   ├── data/               # Raw logs (CSV/JSON)
+│   │   └── q_tables/       # Data persistence for car_controller.py
 │   └── plots/              # Final reproduction graphics (PNG/PDF)
 │
 └── docs/                   # Poster and Paper materials

@@ -12,7 +12,7 @@ import numpy as np
 from controller import Robot  # type: ignore
 
 from src.exp_env.webots_env import WebotsEnv
-from src.webots.utils.helper_functions import make_agent
+from src.webots.utils.helper_functions import make_agent, load_q_table, save_q_table
 
 # =========================
 # CONSTANTS
@@ -21,10 +21,6 @@ MAX_SPEED = 13.0
 N = 3
 M = 3
 k = 2/3
-
-# helper function to read gap sensor values and cap them at 50.0 (to avoid outliers)
-def read_gap(sensor):
-    return min(sensor.getValue(), 50.0)
 
 def safe_get(robot, name, kind="device"):
     obj = robot.getDevice(name)
@@ -62,14 +58,14 @@ def run():
     rear_lights 
     backwards_lights
     """
-    t = 0
     ts = int(robot.getBasicTimeStep())
 
     agent_id = int(robot.getName().split("_")[1])
 
-    env = WebotsEnv(N, M, k)
+    env = WebotsEnv(N, M, k, MAX_SPEED)
     world_name = robot.getWorldPath().split('/')[-1]
     agent = make_agent(world_name, agent_id, env)
+    load_q_table(agent, world_name, agent_id)
 
     # =========================
     # TESLA MODEL 3 WHEELS
@@ -97,53 +93,36 @@ def run():
         s.enable(ts)
 
     # =========================
-    # COMMUNICATION
-    # =========================
-    received = {}
-
-    # =========================
     # MAIN LOOP
     # =========================
+    state = env.reset()
+
+    t = 0
+
     while robot.step(ts) != -1:
-        obs = [
-            sensors["lf"].getValue(),
-            sensors["rf"].getValue(),
-            sensors["lr"].getValue(),
-            sensors["rr"].getValue(),
-        ]
-
-        state = env.get_state(agent_id, obs)
-
         action = agent.choose_action(state, t)
         t += 1
         speed = env.action_to_speed(action, max_speed=MAX_SPEED)
 
-        received[agent_id] = action
-
         # learning step
-        if len(received) == N:
-            rewards = env.step(received)
+        joint_action = np.zeros(env.N, dtype=int)
+        joint_action[agent_id] = action
 
-            reward = rewards[agent_id]
-            next_obs = [
-                sensors["lf"].getValue(),
-                sensors["rf"].getValue(),
-                sensors["lr"].getValue(),
-                sensors["rr"].getValue(),
-            ]
-            next_state = env.get_state(agent_id, next_obs)
+        next_state, rewards, prev_state = env.step(joint_action)
+        reward = rewards[agent_id]
 
-            agent.learn(state, action, reward, next_state)
+        agent.learn(state, action, reward, next_state)
 
-            received = {}
+        state = next_state
 
         # drive all wheels
         for m in motors:
             m.setVelocity(speed)
 
-        # print q table every 100 steps
-        if t % 100 == 0:
-            agent.print_q_table()
+        # periodic persistence
+        if t % 50 == 0:
+            print(agent.q_table)
+            save_q_table(agent, world_name, agent_id)
 
 
 if __name__ == "__main__":
