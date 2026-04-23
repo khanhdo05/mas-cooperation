@@ -1,5 +1,7 @@
 import sys
 import os
+import json
+import time
 
 PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../../..")
@@ -44,8 +46,16 @@ def run():
     ts = int(robot.getBasicTimeStep())
 
     agent_id = int(robot.getName().split("_")[1])
+    ACTION_FILE = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), f"../../../../action_{agent_id}.json")
+    )
+    RESPONSE_FILE = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), f"../../../../response_{agent_id}.json")
+    )
+    print(f"[car_{agent_id}] ACTION_FILE = {ACTION_FILE}")
+    print(f"[car_{agent_id}] RESPONSE_FILE = {RESPONSE_FILE}")
     world_name = robot.getWorldPath().split('/')[-1]
-    agent = make_agent(world_name, agent_id, state_size=N**M, action_size=M)
+    agent = make_agent(world_name, agent_id, state_size=(M + 1) ** N, action_size=M+1)
     load_q_table(agent, world_name, agent_id)
 
     # =========================
@@ -64,25 +74,61 @@ def run():
     # MAIN LOOP
     # =========================
     t = 0
-    state = 0  # Initial state (can be modified to reflect actual environment state if needed)
+    state = 0
+    waiting_for_response = False
+    pending_action = None
 
     while robot.step(ts) != -1:
-        # choose action
+        # =========================
+        # IF WAITING, CHECK FOR RESPONSE
+        # =========================
+        if waiting_for_response:
+            if os.path.exists(RESPONSE_FILE):
+                with open(RESPONSE_FILE, "r") as f:
+                    data = json.load(f)
+
+                reward = data["reward"]
+                next_state = data["next_state"]
+
+                os.remove(RESPONSE_FILE)
+
+                agent.learn(
+                    state,
+                    pending_action,
+                    reward,
+                    next_state
+                )
+                state = next_state
+                waiting_for_response = False
+                pending_action = None
+
+            # keep current wheel speed while waiting
+            continue
+
+        # =========================
+        # CHOOSE ACTION
+        # =========================
         action = agent.choose_action(state, t)
 
-        # TODO: get reward and next_state from environment based on action
-        # this is a placeholder and should be replaced with actual logic to interact with the environment and calculate rewards
-        reward = 0
-        next_state = state
-        agent.learn(
-            state,
-            action,
-            reward,
-            next_state
-        )
-        state = next_state
+        # =========================
+        # SEND ACTION
+        # =========================
+        with open(ACTION_FILE, "w") as f:
+            json.dump({
+                "state": int(state),
+                "action": int(action)
+            }, f)
+            f.flush()
+            os.fsync(f.fileno())
 
-        # get speed from action
+        print(f"[car_{agent_id}] wrote action file", flush=True)
+
+        pending_action = action
+        waiting_for_response = True
+
+        # =========================
+        # APPLY SPEED
+        # =========================
         speed = action_to_speed(action)
 
         # drive all wheels
