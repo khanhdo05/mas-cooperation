@@ -12,6 +12,38 @@ PROJECT_ROOT = os.path.abspath(
     )
 )
 
+# =========================
+# ACTIONS SYNCING HELPERS
+# =========================
+
+def get_communication_data(agent_id: int, mode: "action" | "response") -> str: # type: ignore
+    """
+    Creates a stable path:
+
+    mas-cooperation/
+        results/
+            data/
+                communication/
+                    {mode}_{agent_id}.json
+    """
+    save_dir = os.path.join(
+        PROJECT_ROOT,
+        "results",
+        "data",
+        "communication"
+    )
+
+    os.makedirs(save_dir, exist_ok=True)
+
+    filename = f"{mode}_{agent_id}.json"
+
+    return os.path.join(save_dir, filename)
+
+
+# =========================
+# Q-TABLE SYNCING HELPERS
+# =========================
+
 def get_qtable_path(world_name: str, agent_id: int):
     """
     Creates a stable path:
@@ -70,6 +102,11 @@ def load_q_table(agent, world_name, agent_id):
     except Exception as e:
         print(f"[car_{agent_id}] ERROR loading Q-table:", e)
         print(f"[car_{agent_id}] Starting with fresh Q-table.")
+
+
+# =========================
+# MATCH ALGO HELPERS
+# =========================
 
 def get_algo_name(world_name: str) -> str:
     if "q_learning" in world_name:

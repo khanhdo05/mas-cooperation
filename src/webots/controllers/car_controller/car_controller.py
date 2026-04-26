@@ -13,12 +13,12 @@ if PROJECT_ROOT not in sys.path:
 import numpy as np
 from controller import Robot  # type: ignore
 
-from src.webots.utils.helper_functions import make_agent, load_q_table, save_q_table
+from src.webots.utils.helper_functions import make_agent, load_q_table, save_q_table, get_communication_data
 
 # =========================
 # CONSTANTS
 # =========================
-MAX_SPEED = 13.0
+MAX_SPEED = 20.0
 N = 3
 M = 3
 k = 2/3
@@ -46,12 +46,8 @@ def run():
     ts = int(robot.getBasicTimeStep())
 
     agent_id = int(robot.getName().split("_")[1])
-    ACTION_FILE = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), f"../../../../action_{agent_id}.json")
-    )
-    RESPONSE_FILE = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), f"../../../../response_{agent_id}.json")
-    )
+    ACTION_FILE = get_communication_data(agent_id, 'action')
+    RESPONSE_FILE = get_communication_data(agent_id, 'response')
     print(f"[car_{agent_id}] ACTION_FILE = {ACTION_FILE}")
     print(f"[car_{agent_id}] RESPONSE_FILE = {RESPONSE_FILE}")
     world_name = robot.getWorldPath().split('/')[-1]
@@ -113,7 +109,9 @@ def run():
         # =========================
         # SEND ACTION
         # =========================
-        with open(ACTION_FILE, "w") as f:
+        tmp = ACTION_FILE + ".tmp"
+
+        with open(tmp, "w") as f:
             json.dump({
                 "state": int(state),
                 "action": int(action)

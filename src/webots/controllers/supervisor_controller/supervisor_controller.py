@@ -19,21 +19,11 @@ PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../../..")
 )
 
-def get_action_file(agent_id: int) -> str:
-    return os.path.abspath(
-        os.path.join(os.path.dirname(__file__), f"../../../../action_{agent_id}.json")
-    )
-
-def get_response_file(agent_id: int) -> str:
-    return os.path.abspath(
-        os.path.join(os.path.dirname(__file__), f"../../../../response_{agent_id}.json")
-    )
-
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from controller import Supervisor  # type: ignore
-from src.webots.utils.helper_functions import get_algo_name
+from src.webots.utils.helper_functions import get_algo_name, get_communication_data
 from src.exp_env.masd_env import MASDEnv
 import math
 import numpy as np
@@ -45,8 +35,8 @@ robot = Supervisor()
 timestep = int(robot.getBasicTimeStep())
 N_AGENTS = 3
 for i in range(N_AGENTS):
-    print(f"[supervisor] action file {i} = {get_action_file(i)}")
-    print(f"[supervisor] response file {i} = {get_response_file(i)}")
+    print(f"[supervisor] action file {i} = {get_communication_data(i, 'action')}")
+    print(f"[supervisor] response file {i} = {get_communication_data(i, 'response')}")
 
 # =========================
 # WEBOTS ENVIRONMENT SETUP
@@ -113,8 +103,8 @@ for episode in range(1, MAX_EPISODES + 1):
     # RESET SHARED DATA
     # =========================
     for i in range(N_AGENTS):
-        action_file = get_action_file(i)
-        response_file = get_response_file(i)
+        action_file = get_communication_data(i, 'action')
+        response_file = get_communication_data(i, 'response')
 
         if os.path.exists(action_file):
             os.remove(action_file)
@@ -133,7 +123,7 @@ for episode in range(1, MAX_EPISODES + 1):
         episode_step += 1
         print("[supervisor] checking action files...", flush=True)
         for i in range(N_AGENTS):
-            print(i, os.path.exists(get_action_file(i)), flush=True)
+            print(i, os.path.exists(get_communication_data(i, 'action')), flush=True)
 
         # =========================
         # READ ACTIONS FROM CARS
@@ -142,9 +132,9 @@ for episode in range(1, MAX_EPISODES + 1):
         all_actions_ready = True
 
         for i in range(N_AGENTS):
-            action_file = get_action_file(i)
+            action_file = get_communication_data(i, 'action')
 
-            if not os.path.exists(action_file):
+            if not os.path.exists(action_file) or os.path.getsize(action_file) == 0:
                 all_actions_ready = False
                 break
 
@@ -152,10 +142,15 @@ for episode in range(1, MAX_EPISODES + 1):
             continue
 
         for i in range(N_AGENTS):
-            action_file = get_action_file(i)
+            action_file = get_communication_data(i, 'action')
 
-            with open(action_file, "r") as f:
-                action_data = json.load(f)
+            try:
+                with open(action_file, "r") as f:
+                    action_data = json.load(f)
+            except json.JSONDecodeError:
+                # file exists but not ready yet
+                all_actions_ready = False
+                break
 
             actions.append(action_data["action"])
             print("[supervisor] got actions:", actions, flush=True)
@@ -171,7 +166,7 @@ for episode in range(1, MAX_EPISODES + 1):
         # WRITE RESPONSES FOR CARS
         # =========================
         for i in range(N_AGENTS):
-            response_file = get_response_file(i)
+            response_file = get_communication_data(i, 'response')
 
             with open(response_file, "w") as f:
                 json.dump({
