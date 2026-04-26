@@ -118,6 +118,7 @@ def run():
             }, f)
             f.flush()
             os.fsync(f.fileno())
+        os.rename(tmp, ACTION_FILE)
 
         print(f"[car_{agent_id}] wrote action file", flush=True)
 

@@ -137,7 +137,11 @@ for episode in range(1, MAX_EPISODES + 1):
             if not os.path.exists(action_file) or os.path.getsize(action_file) == 0:
                 all_actions_ready = False
                 break
-
+        print(
+            "[supervisor] all_actions_ready =",
+            all_actions_ready,
+            flush=True
+        )
         if not all_actions_ready:
             continue
 
