@@ -48,8 +48,8 @@ def run():
     agent_id = int(robot.getName().split("_")[1])
     ACTION_FILE = get_communication_data(agent_id, 'action')
     RESPONSE_FILE = get_communication_data(agent_id, 'response')
-    print(f"[car_{agent_id}] ACTION_FILE = {ACTION_FILE}")
-    print(f"[car_{agent_id}] RESPONSE_FILE = {RESPONSE_FILE}")
+    # print(f"[car_{agent_id}] ACTION_FILE = {ACTION_FILE}")
+    # print(f"[car_{agent_id}] RESPONSE_FILE = {RESPONSE_FILE}")
     world_name = robot.getWorldPath().split('/')[-1]
     agent = make_agent(world_name, agent_id, state_size=(M + 1) ** N, action_size=M+1)
     load_q_table(agent, world_name, agent_id)
@@ -97,6 +97,9 @@ def run():
                 state = next_state
                 waiting_for_response = False
                 pending_action = None
+            else:
+                waiting_for_response = False
+                pending_action = None
 
             # keep current wheel speed while waiting
             continue
@@ -120,7 +123,7 @@ def run():
             os.fsync(f.fileno())
         os.rename(tmp, ACTION_FILE)
 
-        print(f"[car_{agent_id}] wrote action file", flush=True)
+        # print(f"[car_{agent_id}] wrote action file", flush=True)
 
         pending_action = action
         waiting_for_response = True

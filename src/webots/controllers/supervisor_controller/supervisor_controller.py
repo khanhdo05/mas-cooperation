@@ -113,6 +113,10 @@ for episode in range(1, MAX_EPISODES + 1):
             os.remove(response_file)
     time.sleep(0.01)
 
+    # IMPORTANT: allow cars to restart their loop
+    for _ in range(5):
+        robot.step(timestep)
+
     # reset episode-specific variables
     state = env.reset()
     episode_step = 0
@@ -121,9 +125,9 @@ for episode in range(1, MAX_EPISODES + 1):
     # Step through the episode until timeout or collision
     while robot.step(timestep) != -1:
         episode_step += 1
-        print("[supervisor] checking action files...", flush=True)
-        for i in range(N_AGENTS):
-            print(i, os.path.exists(get_communication_data(i, 'action')), flush=True)
+        # print("[supervisor] checking action files...", flush=True)
+        # for i in range(N_AGENTS):
+        #     print(i, os.path.exists(get_communication_data(i, 'action')), flush=True)
 
         # =========================
         # READ ACTIONS FROM CARS
@@ -137,11 +141,11 @@ for episode in range(1, MAX_EPISODES + 1):
             if not os.path.exists(action_file) or os.path.getsize(action_file) == 0:
                 all_actions_ready = False
                 break
-        print(
-            "[supervisor] all_actions_ready =",
-            all_actions_ready,
-            flush=True
-        )
+        # print(
+        #     "[supervisor] all_actions_ready =",
+        #     all_actions_ready,
+        #     flush=True
+        # )
         if not all_actions_ready:
             continue
 
@@ -157,7 +161,7 @@ for episode in range(1, MAX_EPISODES + 1):
                 break
 
             actions.append(action_data["action"])
-            print("[supervisor] got actions:", actions, flush=True)
+            # print("[supervisor] got actions:", actions, flush=True)
             os.remove(action_file)
 
         # =========================
@@ -177,7 +181,7 @@ for episode in range(1, MAX_EPISODES + 1):
                     "reward": float(rewards[i]),
                     "next_state": int(next_state)
                 }, f)
-            print("[supervisor] wrote responses", flush=True)
+            # print("[supervisor] wrote responses", flush=True)
 
         # ============================
         # UPDATE DISTANCE FOR EACH CAR
