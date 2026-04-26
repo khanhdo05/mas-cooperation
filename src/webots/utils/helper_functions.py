@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.abspath(
 # ACTIONS SYNCING HELPERS
 # =========================
 
-def get_communication_data(agent_id: int, mode: "action" | "response") -> str: # type: ignore
+def get_communication_data(agent_id: int, mode: str) -> str: # type: ignore
     """
     Creates a stable path:
 
