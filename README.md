@@ -22,7 +22,6 @@ Standard Q-learning often fails in multi-agent settings because the environment 
 ├── src/                    
 │   ├── exp_env/                
 │   │   └── masd_env.py     # MASD payoff logic (N=3, M=3, k=2/3)
-│   │   └── webots_env.py   # Interface between Webots and RL agents
 │   │  
 │   ├── agents/             # RL Algorithms
 │   │   ├── base_agent.py   # Abstract class for shared logic (Q-values, exploration)
