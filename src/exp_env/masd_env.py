@@ -46,6 +46,7 @@ class MASDEnv:
 
         Return the next state, rewards for each agent, and the previous state.
         """
+        joint_action = np.array(joint_action, dtype=int)
         total_contribution = np.sum(joint_action)  # Total contribution is the sum of all agents' actions. Higher contributions indicate more cooperation.
         avg_contribution = total_contribution / self.N  # Average contribution per agent. This is used to determine the reward based on how much cooperation is happening in the joint action.
         

@@ -1,0 +1,109 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/vehicles/protos/tesla/TeslaModel3.proto"
+
+WorldInfo {
+}
+Viewpoint {
+  orientation -0.20857002193531513 0.09214983364099767 0.9736564867086537 2.3291092748340856
+  position 34.01151692718075 -40.81976765227562 23.315446244434607
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 40 40
+  floorAppearance PBRAppearance {
+    baseColorMap ImageTexture {
+      url [
+        "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/default/worlds/textures/grass.jpg"
+      ]
+    }
+    roughness 1
+    metalness 0
+  }
+}
+DEF car_0 TeslaModel3 {
+  translation 1.48 -18.2584 -0.230539
+  rotation 0.007897859205161614 -0.007888586734099264 0.9999376950687048 1.5708617782027858
+  color 0.878431 0.105882 0.141176
+  name "Agent_0"
+  controller "car_controller"
+}
+DEF car_1 TeslaModel3 {
+  translation -17.3489 -1.39 -0.215994
+  rotation -0.0003129848178504851 -0.999999950815642 2.0229121786718584e-05 0.015784490900466082
+  color 0.964706 0.827451 0.176471
+  name "Agent_1"
+  controller "car_controller"
+}
+DEF car_2 TeslaModel3 {
+  translation 18.7406 1.52001 -0.299111
+  rotation 0.007945832272335904 -7.637333366703515e-06 0.9999684313472957 3.1415909220569853
+  name "Agent_2"
+  controller "car_controller"
+}
+Solid {
+  translation 0 0 0.001
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.1 0.1 0.1
+      }
+      geometry Box {
+        size 40 6 0.01
+      }
+    }
+  ]
+  name "road1"
+}
+Solid {
+  translation 0 0 0.002
+  children [
+    Shape {
+      appearance PBRAppearance {
+        baseColor 0.1 0.1 0.1
+      }
+      geometry Box {
+        size 6 40 0.01
+      }
+    }
+  ]
+  name "road2"
+}
+Solid {
+  translation 0 0 0.003
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.2 40 0.01
+      }
+    }
+  ]
+  name "line1"
+}
+Solid {
+  translation 0 0 0.003
+  rotation 0 0 1 -1.5707953071795862
+  children [
+    Shape {
+      appearance PBRAppearance {
+      }
+      geometry Box {
+        size 0.2 40 0.01
+      }
+    }
+  ]
+  name "line2"
+}
+Robot {
+  name "supervisor"
+  controller "supervisor_controller"
+  supervisor TRUE
+}

@@ -1,5 +1,7 @@
 import sys
 import os
+import json
+import time
 
 PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../../..")
@@ -10,91 +12,47 @@ if PROJECT_ROOT not in sys.path:
 
 import numpy as np
 from controller import Robot  # type: ignore
-import json
 
-from src.exp_env.webots_env import WebotsEnv
-from src.agents.q_learning import QLearningAgent
-from src.agents.ck import CKAgent
-from src.agents.ck_colf import CKCoLFAgent
+from src.webots.utils.helper_functions import make_agent, load_q_table, save_q_table, get_communication_data
 
+# =========================
+# CONSTANTS
+# =========================
 MAX_SPEED = 20.0
-TIMESTEP = 32
-N_AGENTS = 3
-
-
-def read_gap(sensor):
-    return min(sensor.getValue(), 50.0)
-
+N = 3
+M = 3
+k = 2/3
 
 def safe_get(robot, name, kind="device"):
+    """
+    Safely get a device from the robot. Raises an error if the device is missing.
+    """
     obj = robot.getDevice(name)
     if obj is None:
         raise RuntimeError(f"[ERROR] Missing {kind}: '{name}'")
     return obj
 
-
-def make_agent(agent_id: int, env: WebotsEnv):
-    algo_map = {0: "q", 1: "ck", 2: "ckcolf"}
-    fav_num = 31
-    seed = np.random.default_rng(fav_num + agent_id)
-
-    algo = algo_map[agent_id]
-
-    if algo == "q":
-        return QLearningAgent(agent_id, env.n_states, env.n_actions,
-                              gamma=0.95, base_alpha=0.1, seed=seed)
-
-    elif algo == "ck":
-        return CKAgent(agent_id, env.n_states, env.n_actions,
-                       gamma=0.95, base_alpha=0.1, seed=seed)
-
-    elif algo == "ckcolf":
-        return CKCoLFAgent(agent_id, env.n_states, env.n_actions,
-                           seed=seed, gamma=0.95,
-                           alpha_ns=0.1, alpha_s=0.4,
-                           colf_lambda=0.1)
-
-    else:
-        raise ValueError(f"Unknown algorithm for agent {agent_id}")
-
+def action_to_speed(action):
+    """
+    Convert action index to speed value.
+    """
+    return MAX_SPEED * (
+            1 - action / M
+        )
 
 def run():
     robot = Robot()
 
-    # print("=== DEVICES ===")
-    # for i in range(robot.getNumberOfDevices()):
-    #     print(robot.getDeviceByIndex(i).getName())
-    """
-    left_steer 
-    left_steer_sensor 
-    left_front_sensor 
-    left_front_brake 
-    right_steer 
-    right_steer_sensor 
-    right_front_sensor 
-    right_front_brake 
-    left_rear_wheel 
-    left_rear_sensor 
-    left_rear_brake 
-    right_rear_wheel 
-    right_rear_sensor 
-    right_rear_brake 
-    engine_speaker 
-    front_lights 
-    right_indicators 
-    left_indicators 
-    antifog_lights 
-    brake_lights 
-    rear_lights 
-    backwards_lights
-    """
-    t = 0
     ts = int(robot.getBasicTimeStep())
 
     agent_id = int(robot.getName().split("_")[1])
-
-    env = WebotsEnv(n_agents=N_AGENTS)
-    agent = make_agent(agent_id, env)
+    ACTION_FILE = get_communication_data(agent_id, 'action')
+    RESPONSE_FILE = get_communication_data(agent_id, 'response')
+    # print(f"[car_{agent_id}] ACTION_FILE = {ACTION_FILE}")
+    # print(f"[car_{agent_id}] RESPONSE_FILE = {RESPONSE_FILE}")
+    world_name = robot.getWorldPath().split('/')[-1]
+    agent = make_agent(world_name, agent_id, state_size=(M + 1) ** N, action_size=M+1)
+    load_q_table(agent, world_name, agent_id)
 
     # =========================
     # TESLA MODEL 3 WHEELS
@@ -109,62 +67,82 @@ def run():
         m.setVelocity(0.0)
 
     # =========================
-    # SENSOR
-    # =========================
-    sensors = {
-        "lf": robot.getDevice("left_front_sensor"),
-        "rf": robot.getDevice("right_front_sensor"),
-        "lr": robot.getDevice("left_rear_sensor"),
-        "rr": robot.getDevice("right_rear_sensor"),
-    }
-
-    for s in sensors.values():
-        s.enable(ts)
-
-    # =========================
-    # COMMUNICATION
-    # =========================
-    received = {}
-
-    # =========================
     # MAIN LOOP
     # =========================
+    t = 0
+    state = 0
+    waiting_for_response = False
+    pending_action = None
+
     while robot.step(ts) != -1:
-        obs = [
-            sensors["lf"].getValue(),
-            sensors["rf"].getValue(),
-            sensors["lr"].getValue(),
-            sensors["rr"].getValue(),
-        ]
+        # =========================
+        # IF WAITING, CHECK FOR RESPONSE
+        # =========================
+        if waiting_for_response:
+            if os.path.exists(RESPONSE_FILE):
+                with open(RESPONSE_FILE, "r") as f:
+                    data = json.load(f)
 
-        state = env.get_state(agent_id, obs)
+                reward = data["reward"]
+                next_state = data["next_state"]
 
+                os.remove(RESPONSE_FILE)
+
+                agent.learn(
+                    state,
+                    pending_action,
+                    reward,
+                    next_state
+                )
+                state = next_state
+                waiting_for_response = False
+                pending_action = None
+            else:
+                waiting_for_response = False
+                pending_action = None
+
+            # keep current wheel speed while waiting
+            continue
+
+        # =========================
+        # CHOOSE ACTION
+        # =========================
         action = agent.choose_action(state, t)
-        t += 1
-        speed = env.action_to_speed(action, base_speed=MAX_SPEED)
 
-        received[agent_id] = action
+        # =========================
+        # SEND ACTION
+        # =========================
+        tmp = ACTION_FILE + ".tmp"
 
-        # learning step
-        if len(received) == N_AGENTS:
-            rewards = env.step(received)
+        with open(tmp, "w") as f:
+            json.dump({
+                "state": int(state),
+                "action": int(action)
+            }, f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.rename(tmp, ACTION_FILE)
 
-            reward = rewards[agent_id]
-            next_obs = [
-                sensors["lf"].getValue(),
-                sensors["rf"].getValue(),
-                sensors["lr"].getValue(),
-                sensors["rr"].getValue(),
-            ]
-            next_state = env.get_state(agent_id, next_obs)
+        # print(f"[car_{agent_id}] wrote action file", flush=True)
 
-            agent.learn(state, action, reward, next_state)
+        pending_action = action
+        waiting_for_response = True
 
-            received = {}
+        # =========================
+        # APPLY SPEED
+        # =========================
+        speed = action_to_speed(action)
 
         # drive all wheels
         for m in motors:
             m.setVelocity(speed)
+
+        # increment time step
+        t += 1
+
+        # periodic persistence
+        if t % 50 == 0:
+            save_q_table(agent, world_name, agent_id)
 
 
 if __name__ == "__main__":
