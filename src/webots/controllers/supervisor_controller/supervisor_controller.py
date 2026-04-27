@@ -12,6 +12,8 @@
 
 import sys
 import os
+import json
+import time
 
 PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../../../..")
@@ -21,7 +23,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from controller import Supervisor  # type: ignore
-from src.webots.utils.helper_functions import get_algo_name
+from src.webots.utils.helper_functions import get_algo_name, get_communication_data
 from src.exp_env.masd_env import MASDEnv
 import math
 import numpy as np
@@ -32,6 +34,9 @@ import numpy as np
 robot = Supervisor()
 timestep = int(robot.getBasicTimeStep())
 N_AGENTS = 3
+for i in range(N_AGENTS):
+    print(f"[supervisor] action file {i} = {get_communication_data(i, 'action')}")
+    print(f"[supervisor] response file {i} = {get_communication_data(i, 'response')}")
 
 # =========================
 # WEBOTS ENVIRONMENT SETUP
@@ -92,7 +97,25 @@ print(f"=== Starting {MAX_EPISODES} Episodes for {current_algo} ===")
 
 # Episode loop
 for episode in range(1, MAX_EPISODES + 1):
-    print(f"\n=== Episode {episode} ===")
+    print(f"\n=== Episode {episode} ===", flush=True)
+    
+    # =========================
+    # RESET SHARED DATA
+    # =========================
+    for i in range(N_AGENTS):
+        action_file = get_communication_data(i, 'action')
+        response_file = get_communication_data(i, 'response')
+
+        if os.path.exists(action_file):
+            os.remove(action_file)
+
+        if os.path.exists(response_file):
+            os.remove(response_file)
+    time.sleep(0.01)
+
+    # IMPORTANT: allow cars to restart their loop
+    for _ in range(5):
+        robot.step(timestep)
 
     # reset episode-specific variables
     state = env.reset()
@@ -102,17 +125,63 @@ for episode in range(1, MAX_EPISODES + 1):
     # Step through the episode until timeout or collision
     while robot.step(timestep) != -1:
         episode_step += 1
+        # print("[supervisor] checking action files...", flush=True)
+        # for i in range(N_AGENTS):
+        #     print(i, os.path.exists(get_communication_data(i, 'action')), flush=True)
 
-        # ============================
-        # TODO: GENERATE ACTIONS (NEED TO BE REPLACED WITH ACTUAL AGENT ACTIONS)
-        # ============================
-        actions = np.random.randint(0, 3, size=N_AGENTS)
+        # =========================
+        # READ ACTIONS FROM CARS
+        # =========================
+        actions = []
+        all_actions_ready = True
+
+        for i in range(N_AGENTS):
+            action_file = get_communication_data(i, 'action')
+
+            if not os.path.exists(action_file) or os.path.getsize(action_file) == 0:
+                all_actions_ready = False
+                break
+        # print(
+        #     "[supervisor] all_actions_ready =",
+        #     all_actions_ready,
+        #     flush=True
+        # )
+        if not all_actions_ready:
+            continue
+
+        for i in range(N_AGENTS):
+            action_file = get_communication_data(i, 'action')
+
+            try:
+                with open(action_file, "r") as f:
+                    action_data = json.load(f)
+            except json.JSONDecodeError:
+                # file exists but not ready yet
+                all_actions_ready = False
+                break
+
+            actions.append(action_data["action"])
+            # print("[supervisor] got actions:", actions, flush=True)
+            os.remove(action_file)
 
         # =========================
         # ENVIRONMENT STEP
         # =========================
         next_state, rewards, prev_state = env.step(actions)
         state = next_state
+
+        # =========================
+        # WRITE RESPONSES FOR CARS
+        # =========================
+        for i in range(N_AGENTS):
+            response_file = get_communication_data(i, 'response')
+
+            with open(response_file, "w") as f:
+                json.dump({
+                    "reward": float(rewards[i]),
+                    "next_state": int(next_state)
+                }, f)
+            # print("[supervisor] wrote responses", flush=True)
 
         # ============================
         # UPDATE DISTANCE FOR EACH CAR
@@ -140,7 +209,7 @@ for episode in range(1, MAX_EPISODES + 1):
         # =========================
         # PROGRESS PRINT
         # =========================
-        if episode_step % 100 == 0:
+        if episode_step > 0 and episode_step % 100 == 0:
             print(f"--- Step {episode_step} ---")
             print("ACTIONS:", actions)
             print("STATE:", state)
