@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 class BaseAgent:
     """
@@ -44,3 +45,8 @@ class BaseAgent:
         # Decay alpha based on the count of how many times this state-action pair has been taken. 
         # The more it has been taken, the smaller the learning rate, allowing for more stable learning over time.
         return base_alpha / (1 + 0.0001 * self.n_table[state, action])
+    
+    def print_q_table(self):
+        """Utility function to print the Q-table for debugging."""
+        print(f"Agent {self.agent_id} Q-table:")
+        print(self.q_table)
